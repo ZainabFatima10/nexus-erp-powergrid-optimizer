@@ -4,50 +4,50 @@
 
 @layer base {
   :root {
-    --background: 222 47% 8%;
+    --background: 150 30% 9%;
     --foreground: 210 40% 96%;
 
-    --card: 220 39% 10%;
+    --card: 150 25% 12%;
     --card-foreground: 210 40% 96%;
 
-    --popover: 220 39% 10%;
+    --popover: 150 25% 12%;
     --popover-foreground: 210 40% 96%;
 
-    --primary: 191 100% 50%;
-    --primary-foreground: 222 47% 8%;
+    --primary: 125 18% 31%;
+    --primary-foreground: 210 40% 96%;
 
-    --secondary: 263 100% 58%;
+    --secondary: 130 15% 45%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 220 30% 16%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 140 16% 18%;
+    --muted-foreground: 140 12% 55%;
 
-    --accent: 263 100% 58%;
+    --accent: 130 15% 45%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --success: 142 71% 45%;
+    --success: 133 25% 55%;
     --success-foreground: 210 40% 98%;
 
     --warning: 38 92% 50%;
-    --warning-foreground: 222 47% 8%;
+    --warning-foreground: 150 30% 9%;
 
-    --border: 220 20% 18%;
-    --input: 220 20% 18%;
-    --ring: 191 100% 50%;
+    --border: 140 12% 20%;
+    --input: 140 12% 20%;
+    --ring: 130 15% 45%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 222 47% 6%;
+    --sidebar-background: 150 30% 7%;
     --sidebar-foreground: 210 40% 96%;
-    --sidebar-primary: 191 100% 50%;
-    --sidebar-primary-foreground: 222 47% 8%;
-    --sidebar-accent: 220 30% 14%;
+    --sidebar-primary: 125 18% 31%;
+    --sidebar-primary-foreground: 210 40% 96%;
+    --sidebar-accent: 140 16% 16%;
     --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 220 20% 15%;
-    --sidebar-ring: 191 100% 50%;
+    --sidebar-border: 140 12% 17%;
+    --sidebar-ring: 130 15% 45%;
   }
 }
 
@@ -72,24 +72,24 @@
 
 /* Electric glow effect */
 .glow-cyan {
-  box-shadow: 0 0 20px hsl(191 100% 50% / 0.15), 0 0 40px hsl(191 100% 50% / 0.05);
+  box-shadow: 0 0 20px hsl(130 15% 45% / 0.15), 0 0 40px hsl(130 15% 45% / 0.05);
 }
 
 .glow-cyan-hover:hover {
-  box-shadow: 0 0 25px hsl(191 100% 50% / 0.25), 0 0 50px hsl(191 100% 50% / 0.1);
+  box-shadow: 0 0 25px hsl(130 15% 45% / 0.25), 0 0 50px hsl(130 15% 45% / 0.1);
 }
 
 /* Grid background texture */
 .grid-bg {
   background-image: 
-    linear-gradient(hsl(220 20% 18% / 0.5) 1px, transparent 1px),
-    linear-gradient(90deg, hsl(220 20% 18% / 0.5) 1px, transparent 1px);
+    linear-gradient(hsl(140 12% 20% / 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(140 12% 20% / 0.5) 1px, transparent 1px);
   background-size: 60px 60px;
 }
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, hsl(191 100% 50%), hsl(263 100% 58%));
+  background: linear-gradient(135deg, hsl(125 18% 31%), hsl(130 15% 45%));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -97,11 +97,11 @@
 
 /* Gradient button */
 .gradient-btn {
-  background: linear-gradient(135deg, hsl(191 100% 50%), hsl(191 100% 40%));
+  background: linear-gradient(135deg, hsl(125 18% 31%), hsl(125 18% 25%));
 }
 
 .gradient-btn:hover {
-  background: linear-gradient(135deg, hsl(191 100% 55%), hsl(191 100% 45%));
+  background: linear-gradient(135deg, hsl(125 18% 36%), hsl(125 18% 30%));
 }
 
 /* Scrollbar */
@@ -109,10 +109,10 @@
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: hsl(222 47% 8%);
+  background: hsl(150 30% 9%);
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(220 20% 25%);
+  background: hsl(140 12% 25%);
   border-radius: 3px;
 }
 
@@ -127,7 +127,7 @@
 }
 
 /* Notification border accents */
-.border-accent-cyan { border-left: 3px solid hsl(191 100% 50%); }
-.border-accent-violet { border-left: 3px solid hsl(263 100% 58%); }
+.border-accent-cyan { border-left: 3px solid hsl(125 18% 31%); }
+.border-accent-violet { border-left: 3px solid hsl(130 15% 45%); }
 .border-accent-amber { border-left: 3px solid hsl(38 92% 50%); }
-.border-accent-green { border-left: 3px solid hsl(142 71% 45%); }
+.border-accent-green { border-left: 3px solid hsl(133 25% 55%); }
