@@ -101,7 +101,7 @@
 }
 
 .gradient-btn:hover {
-  background: linear-gradient(135deg, hsl(125 18% 36%), hsl(125 18% 30%));
+  background: linear-gradient(135deg, hsl(130 15% 50%), hsl(130 15% 43%));
 }
 
 /* Scrollbar */
