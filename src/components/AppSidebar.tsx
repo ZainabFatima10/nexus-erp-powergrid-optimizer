@@ -24,7 +24,7 @@ const AppSidebar = () => {
         {collapsed && (
           <div className="w-8 h-8 flex items-center justify-center">
             <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
-              <defs><linearGradient id="sideHex" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="hsl(191 100% 50%)" /><stop offset="100%" stopColor="hsl(263 100% 58%)" /></linearGradient></defs>
+              <defs><linearGradient id="sideHex" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="hsl(130 15% 45%)" /><stop offset="100%" stopColor="hsl(133 25% 55%)" /></linearGradient></defs>
               <path d="M24 4L42 14V34L24 44L6 34V14L24 4Z" stroke="url(#sideHex)" strokeWidth="2" fill="none" />
             </svg>
           </div>

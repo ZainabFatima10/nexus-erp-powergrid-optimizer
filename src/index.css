@@ -13,16 +13,16 @@
     --popover: 150 25% 12%;
     --popover-foreground: 210 40% 96%;
 
-    --primary: 125 18% 31%;
+    --primary: 130 15% 45%;
     --primary-foreground: 210 40% 96%;
 
-    --secondary: 130 15% 45%;
+    --secondary: 133 25% 55%;
     --secondary-foreground: 210 40% 98%;
 
     --muted: 140 16% 18%;
     --muted-foreground: 140 12% 55%;
 
-    --accent: 130 15% 45%;
+    --accent: 125 18% 31%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 84% 60%;
@@ -42,7 +42,7 @@
 
     --sidebar-background: 150 30% 7%;
     --sidebar-foreground: 210 40% 96%;
-    --sidebar-primary: 125 18% 31%;
+    --sidebar-primary: 130 15% 45%;
     --sidebar-primary-foreground: 210 40% 96%;
     --sidebar-accent: 140 16% 16%;
     --sidebar-accent-foreground: 210 40% 96%;
@@ -89,7 +89,7 @@
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, hsl(125 18% 31%), hsl(130 15% 45%));
+  background: linear-gradient(135deg, hsl(130 15% 45%), hsl(125 18% 31%));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -97,11 +97,11 @@
 
 /* Gradient button */
 .gradient-btn {
-  background: linear-gradient(135deg, hsl(125 18% 31%), hsl(125 18% 25%));
+  background: linear-gradient(135deg, hsl(130 15% 45%), hsl(130 15% 38%));
 }
 
 .gradient-btn:hover {
-  background: linear-gradient(135deg, hsl(125 18% 36%), hsl(125 18% 30%));
+  background: linear-gradient(135deg, hsl(130 15% 50%), hsl(130 15% 43%));
 }
 
 /* Scrollbar */
