@@ -97,7 +97,7 @@
 
 /* Gradient button */
 .gradient-btn {
-  background: linear-gradient(135deg, hsl(125 18% 31%), hsl(125 18% 25%));
+  background: linear-gradient(135deg, hsl(130 15% 45%), hsl(130 15% 38%));
 }
 
 .gradient-btn:hover {
