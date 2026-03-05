@@ -27,7 +27,8 @@ const Signup = () => {
     navigate("/dashboard");
   };
 
-  const inputClass = "w-full px-4 py-2.5 rounded-lg bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all";
+  const inputClass = "w-full px-4 py-2.5 bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all";
+  const inputStyle = { borderRadius: 20 };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background grid-bg relative overflow-hidden">
