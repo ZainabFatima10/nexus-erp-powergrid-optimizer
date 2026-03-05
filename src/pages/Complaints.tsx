@@ -75,7 +75,7 @@ const Complaints = () => {
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-success/10 text-success font-medium">Resolved</span>
               </div>
               <p className="text-sm">{c.summary}</p>
-              <div className="mt-2 p-2.5 rounded-lg bg-muted/30 text-xs">
+              <div className="mt-2 p-2.5 bg-muted/30 text-xs" style={{ borderRadius: 20 }}>
                 <p className="text-muted-foreground"><strong className="text-foreground">Resolution:</strong> {c.note}</p>
                 <p className="text-muted-foreground mt-1">Resolved by {c.resolver} on {c.resolvedAt}</p>
               </div>
