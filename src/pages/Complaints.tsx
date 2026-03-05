@@ -27,7 +27,7 @@ const Complaints = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-muted/30 rounded-lg p-1 w-fit">
+      <div className="flex gap-1 bg-muted/30 p-1 w-fit" style={{ borderRadius: 20 }}>
         <button onClick={() => setTab("unresolved")} className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${tab === "unresolved" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
           Unresolved ({complaints.unresolved.length})
         </button>
