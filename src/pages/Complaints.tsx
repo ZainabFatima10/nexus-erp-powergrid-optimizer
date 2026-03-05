@@ -28,10 +28,10 @@ const Complaints = () => {
 
       {/* Tabs */}
       <div className="flex gap-1 bg-muted/30 p-1 w-fit" style={{ borderRadius: 20 }}>
-        <button onClick={() => setTab("unresolved")} className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${tab === "unresolved" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+        <button onClick={() => setTab("unresolved")} style={{ borderRadius: 20 }} className={`px-4 py-2 text-sm font-medium transition-all ${tab === "unresolved" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
           Unresolved ({complaints.unresolved.length})
         </button>
-        <button onClick={() => setTab("resolved")} className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${tab === "resolved" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+        <button onClick={() => setTab("resolved")} style={{ borderRadius: 20 }} className={`px-4 py-2 text-sm font-medium transition-all ${tab === "resolved" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
           Resolved ({complaints.resolved.length})
         </button>
       </div>
