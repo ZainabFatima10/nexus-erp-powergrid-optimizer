@@ -19,8 +19,8 @@ const NexusLogo = ({ size = "default" }: { size?: "default" | "large" }) => {
         <Zap
           size={iconSize * 0.6}
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-          style={{ color: "hsl(130 15% 45%)" }}
-          fill="hsl(130 15% 45%)"
+          style={{ color: "#FFFCF7" }}
+          fill="#FFFCF7"
         />
       </div>
       <div className="flex flex-col">
