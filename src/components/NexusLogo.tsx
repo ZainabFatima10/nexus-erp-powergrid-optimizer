@@ -24,7 +24,7 @@ const NexusLogo = ({ size = "default" }: { size?: "default" | "large" }) => {
         />
       </div>
       <div className="flex flex-col">
-        <span className={`font-heading font-bold leading-none ${size === "large" ? "text-2xl" : "text-lg"}`} style={{ color: "hsl(214 100% 16%)" }}>
+        <span className={`font-heading font-bold leading-none ${size === "large" ? "text-2xl" : "text-lg"}`} style={{ color: "#FFFCF7" }}>
           NEXUS ERP
         </span>
         <span className={`text-muted-foreground leading-none ${size === "large" ? "text-sm mt-1" : "text-[10px] mt-0.5"}`}>
