@@ -49,7 +49,7 @@ const Signup = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5">Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className={inputClass} placeholder="john@nexus.com" />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className={inputClass} style={inputStyle} placeholder="john@nexus.com" />
           </div>
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5">Role</label>
