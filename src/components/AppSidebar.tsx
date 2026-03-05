@@ -39,9 +39,9 @@ const AppSidebar = () => {
               key={item.url}
               to={item.url}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium ${
-                active
-                  ? "bg-primary/10 text-primary glow-cyan"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+              active
+                  ? "bg-white/10 text-sidebar-accent glow-cyan"
+                  : "text-sidebar-foreground hover:text-sidebar-accent hover:bg-white/5"
               } ${collapsed ? "justify-center" : ""}`}
               title={collapsed ? item.title : undefined}
             >
@@ -55,7 +55,7 @@ const AppSidebar = () => {
       <div className="p-3 space-y-1 border-t border-sidebar-border">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-all w-full"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:text-sidebar-accent hover:bg-white/5 transition-all w-full"
         >
           {collapsed ? <ChevronRight size={20} /> : <><ChevronLeft size={20} /><span>Collapse</span></>}
         </button>
