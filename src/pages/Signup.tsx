@@ -53,7 +53,7 @@ const Signup = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5">Role</label>
-            <select value={role} onChange={(e) => setRole(e.target.value)} className={inputClass}>
+            <select value={role} onChange={(e) => setRole(e.target.value)} className={inputClass} style={inputStyle}>
               {roles.map((r) => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
