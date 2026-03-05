@@ -59,7 +59,7 @@ const Signup = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5">Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className={inputClass} placeholder="••••••••" />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className={inputClass} style={inputStyle} placeholder="••••••••" />
           </div>
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5">Confirm Password</label>
