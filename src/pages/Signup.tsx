@@ -68,7 +68,7 @@ const Signup = () => {
 
           {error && <p className="text-destructive text-sm">{error}</p>}
 
-          <button type="submit" disabled={loading} className="w-full py-2.5 rounded-lg gradient-btn text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50">
+          <button type="submit" disabled={loading} className="w-full py-2.5 text-white font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50" style={{ borderRadius: 20, backgroundColor: "#001F54" }}>
             <UserPlus size={18} />
             {loading ? "Creating..." : "Create Account"}
           </button>

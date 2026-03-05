@@ -75,7 +75,7 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 rounded-lg gradient-btn text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50"
+            className="w-full py-2.5 text-white font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50" style={{ borderRadius: 20, backgroundColor: "#001F54" }}
           >
             <LogIn size={18} />
             {loading ? "Signing in..." : "Login"}

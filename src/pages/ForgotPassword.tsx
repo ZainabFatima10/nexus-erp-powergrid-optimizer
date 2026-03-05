@@ -39,7 +39,7 @@ const ForgotPassword = () => {
                   placeholder="admin@nexus.com"
                 />
               </div>
-              <button type="submit" className="w-full py-2.5 rounded-lg gradient-btn text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all">
+              <button type="submit" className="w-full py-2.5 text-white font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all" style={{ borderRadius: 20, backgroundColor: "#001F54" }}>
                 <Mail size={18} />
                 Send Reset Link
               </button>
