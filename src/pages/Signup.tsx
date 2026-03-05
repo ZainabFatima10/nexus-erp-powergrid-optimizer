@@ -63,7 +63,7 @@ const Signup = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5">Confirm Password</label>
-            <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required className={inputClass} placeholder="••••••••" />
+            <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required className={inputClass} style={inputStyle} placeholder="••••••••" />
           </div>
 
           {error && <p className="text-destructive text-sm">{error}</p>}
