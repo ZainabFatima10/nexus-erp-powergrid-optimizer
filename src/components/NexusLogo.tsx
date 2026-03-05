@@ -9,8 +9,8 @@ const NexusLogo = ({ size = "default" }: { size?: "default" | "large" }) => {
         <svg width={iconSize + 12} height={iconSize + 12} viewBox="0 0 48 48" fill="none">
           <defs>
             <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FFFCF7" />
-              <stop offset="100%" stopColor="#FFFCF7" />
+              <stop offset="0%" stopColor="#001F54" />
+              <stop offset="100%" stopColor="#001F54" />
             </linearGradient>
           </defs>
           <path d="M24 4L42 14V34L24 44L6 34V14L24 4Z" stroke="url(#hexGrad)" strokeWidth="2" fill="none" />
