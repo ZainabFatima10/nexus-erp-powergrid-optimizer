@@ -55,9 +55,9 @@ const Inventory = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-muted/30 rounded-lg p-1 w-fit">
+      <div className="flex gap-1 bg-muted/30 p-1 w-fit" style={{ borderRadius: 20 }}>
         {tabs.map((t) => (
-          <button key={t.key} onClick={() => setTab(t.key)} className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${tab === t.key ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+          <button key={t.key} onClick={() => setTab(t.key)} style={{ borderRadius: 20 }} className={`px-4 py-2 text-sm font-medium transition-all ${tab === t.key ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
             {t.label}
           </button>
         ))}
