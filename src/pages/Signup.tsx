@@ -27,7 +27,8 @@ const Signup = () => {
     navigate("/dashboard");
   };
 
-  const inputClass = "w-full px-4 py-2.5 rounded-lg bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all";
+  const inputClass = "w-full px-4 py-2.5 bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all";
+  const inputStyle = { borderRadius: 20 };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background grid-bg relative overflow-hidden">
@@ -44,30 +45,30 @@ const Signup = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5">Full Name</label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className={inputClass} placeholder="John Doe" />
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className={inputClass} style={inputStyle} placeholder="John Doe" />
           </div>
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5">Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className={inputClass} placeholder="john@nexus.com" />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className={inputClass} style={inputStyle} placeholder="john@nexus.com" />
           </div>
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5">Role</label>
-            <select value={role} onChange={(e) => setRole(e.target.value)} className={inputClass}>
+            <select value={role} onChange={(e) => setRole(e.target.value)} className={inputClass} style={inputStyle}>
               {roles.map((r) => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5">Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className={inputClass} placeholder="••••••••" />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className={inputClass} style={inputStyle} placeholder="••••••••" />
           </div>
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5">Confirm Password</label>
-            <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required className={inputClass} placeholder="••••••••" />
+            <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required className={inputClass} style={inputStyle} placeholder="••••••••" />
           </div>
 
           {error && <p className="text-destructive text-sm">{error}</p>}
 
-          <button type="submit" disabled={loading} className="w-full py-2.5 rounded-lg gradient-btn text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50">
+          <button type="submit" disabled={loading} className="w-full py-2.5 text-white font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50" style={{ borderRadius: 20, backgroundColor: "#001F54" }}>
             <UserPlus size={18} />
             {loading ? "Creating..." : "Create Account"}
           </button>

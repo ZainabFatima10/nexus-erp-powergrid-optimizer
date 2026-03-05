@@ -42,7 +42,7 @@ const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-2.5 rounded-lg bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              className="w-full px-4 py-2.5 bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" style={{ borderRadius: 20 }}
               placeholder="admin@nexus.com"
             />
           </div>
@@ -55,7 +55,7 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-2.5 rounded-lg bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all pr-10"
+                className="w-full px-4 py-2.5 bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all pr-10" style={{ borderRadius: 20 }}
                 placeholder="••••••••"
               />
               <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
@@ -75,7 +75,7 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 rounded-lg gradient-btn text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50"
+            className="w-full py-2.5 text-white font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50" style={{ borderRadius: 20, backgroundColor: "#001F54" }}
           >
             <LogIn size={18} />
             {loading ? "Signing in..." : "Login"}
