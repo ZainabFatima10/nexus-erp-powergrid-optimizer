@@ -45,7 +45,7 @@ const Signup = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5">Full Name</label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className={inputClass} placeholder="John Doe" />
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className={inputClass} style={inputStyle} placeholder="John Doe" />
           </div>
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5">Email</label>
