@@ -55,7 +55,7 @@ const Complaints = () => {
                     <span>{c.timeSince} ago</span>
                   </div>
                 </div>
-                <button onClick={() => setResolveModal(c.id)} className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-success/10 text-success text-xs font-medium hover:bg-success/20 transition-colors flex items-center gap-1">
+                <button onClick={() => setResolveModal(c.id)} className="flex-shrink-0 px-3 py-1.5 text-xs font-medium flex items-center gap-1 btn-navy">
                   <CheckCircle size={14} /> Resolve
                 </button>
               </div>
