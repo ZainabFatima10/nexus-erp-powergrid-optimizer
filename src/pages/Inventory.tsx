@@ -218,7 +218,7 @@ const Inventory = () => {
                 <label className="block text-sm font-medium text-muted-foreground mb-1.5">Quantity</label>
                 <input type="number" defaultValue={100} className="w-full px-4 py-2.5 rounded-lg bg-muted/50 border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
               </div>
-              <button onClick={() => setShowModal(false)} className="w-full py-2.5 rounded-lg gradient-btn text-primary-foreground font-semibold hover:opacity-90 transition-all">
+              <button onClick={() => setShowModal(false)} className="w-full py-2.5 font-semibold btn-navy">
                 Confirm Reorder
               </button>
             </div>

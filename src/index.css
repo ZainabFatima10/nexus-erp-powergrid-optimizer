@@ -167,6 +167,21 @@
   background: linear-gradient(135deg, hsl(130 15% 50%), hsl(130 15% 43%));
 }
 
+/* Navy button - for app pages */
+.btn-navy {
+  background-color: #001F54;
+  color: #FFFFFF;
+  border: 2px solid #001F54;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.btn-navy:hover {
+  background-color: #FFFFFF;
+  color: #001F54;
+  border-color: #001F54;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

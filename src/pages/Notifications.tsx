@@ -37,7 +37,7 @@ const Notifications = () => {
           <h1 className="text-2xl font-heading font-bold">Notifications</h1>
           <p className="text-muted-foreground text-sm mt-1">Consolidated alerts and updates.</p>
         </div>
-        <button onClick={markAllRead} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50 text-sm hover:bg-muted transition-colors">
+        <button onClick={markAllRead} className="flex items-center gap-2 px-4 py-2 text-sm font-medium btn-navy">
           <CheckCheck size={16} /> Mark all as read
         </button>
       </div>
