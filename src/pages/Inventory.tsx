@@ -168,7 +168,7 @@ const Inventory = () => {
       {tab === "reorders" && (
         <>
           <div className="flex justify-end">
-            <button onClick={() => setShowModal(true)} className="flex items-center gap-2 px-4 py-2 rounded-lg gradient-btn text-primary-foreground text-sm font-medium hover:opacity-90 transition-all">
+            <button onClick={() => setShowModal(true)} className="flex items-center gap-2 px-4 py-2 text-sm font-medium btn-navy">
               <Plus size={16} /> Manually Place Reorder
             </button>
           </div>
