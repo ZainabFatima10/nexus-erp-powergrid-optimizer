@@ -131,7 +131,7 @@ const Inventory = () => {
       {tab === "history" && (
         <>
           <div className="flex justify-end">
-            <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50 text-sm hover:bg-muted transition-colors">
+            <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium btn-navy">
               <Download size={16} /> Export
             </button>
           </div>
