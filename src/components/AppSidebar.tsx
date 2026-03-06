@@ -20,7 +20,7 @@ const AppSidebar = () => {
   return (
     <aside className={`${collapsed ? "w-16" : "w-64"} min-h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]`}>
       <div className={`p-4 border-b border-sidebar-border flex items-center ${collapsed ? "justify-center" : ""}`}>
-        {!collapsed && <NexusLogo />}
+        {!collapsed && <NexusLogoLight />}
         {collapsed && (
           <div className="w-8 h-8 flex items-center justify-center">
             <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
