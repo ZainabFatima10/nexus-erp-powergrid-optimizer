@@ -43,9 +43,9 @@ const Notifications = () => {
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-1 flex-wrap bg-muted/30 rounded-lg p-1">
+      <div className="flex gap-1 flex-wrap bg-muted/30 p-1 w-fit" style={{ borderRadius: 20 }}>
         {categories.map((cat) => (
-          <button key={cat} onClick={() => setFilter(cat)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${filter === cat ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+          <button key={cat} onClick={() => setFilter(cat)} className={`px-3 py-1.5 text-xs font-medium transition-all ${filter === cat ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`} style={{ borderRadius: 20 }}>
             {cat}
           </button>
         ))}
