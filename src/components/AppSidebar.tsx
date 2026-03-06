@@ -1,7 +1,7 @@
 import { useLocation, Link } from "react-router-dom";
 import { LayoutDashboard, Package, Cloud, MessageSquare, Bell, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import NexusLogo from "@/components/NexusLogo";
+import NexusLogoLight from "@/components/NexusLogoLight";
 import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
