@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import NexusLogo from "@/components/NexusLogo";
 import { UserPlus } from "lucide-react";
 
-const roles = ["Admin", "Procurement Officer", "System Operator", "Field Engineer"];
+const roles = ["Admin", "Procurement Officer"];
 
 const Signup = () => {
   const [name, setName] = useState("");
