@@ -11,6 +11,7 @@ import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
+import InventoryPrediction from "./pages/InventoryPrediction";
 import OutagePrediction from "./pages/OutagePrediction";
 import Complaints from "./pages/Complaints";
 import Notifications from "./pages/Notifications";
@@ -33,6 +34,7 @@ const App = () => (
             <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/inventory" element={<Inventory />} />
+              <Route path="/inventory-prediction" element={<InventoryPrediction />} />
               <Route path="/outage-prediction" element={<OutagePrediction />} />
               <Route path="/complaints" element={<Complaints />} />
               <Route path="/notifications" element={<Notifications />} />
