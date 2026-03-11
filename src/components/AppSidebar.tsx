@@ -1,5 +1,5 @@
 import { useLocation, Link } from "react-router-dom";
-import { LayoutDashboard, Package, Cloud, MessageSquare, Bell, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Package, BarChart3, Cloud, MessageSquare, Bell, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import NexusLogoLight from "@/components/NexusLogoLight";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const navItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Inventory", url: "/inventory", icon: Package },
+  { title: "Demand Prediction", url: "/inventory-prediction", icon: BarChart3 },
   { title: "Outage Prediction", url: "/outage-prediction", icon: Cloud },
   { title: "User Complaints", url: "/complaints", icon: MessageSquare },
   { title: "Notifications", url: "/notifications", icon: Bell },

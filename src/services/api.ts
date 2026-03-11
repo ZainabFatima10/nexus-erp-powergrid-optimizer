@@ -1,99 +1,159 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+// src/services/api.ts
+// ─────────────────────────────────────────────────────────────────────────────
+// NEXUS ERP — API Service
+// Replace API_BASE_URL with your live ngrok/localtunnel URL each session,
+// or set VITE_API_URL in your Lovable project environment variables.
+// ─────────────────────────────────────────────────────────────────────────────
 
-async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_URL}${endpoint}`, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
-  if (!res.ok) {
-    throw new Error(`API error: ${res.status} ${res.statusText}`);
-  }
-  return res.json();
+// @ts-ignore
+const API_BASE_URL = "https://true-dogs-begin.loca.lt";
+
+// ─── Generic fetch wrapper ────────────────────────────────────────────────────
+async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+    const res = await fetch(`${API_BASE_URL}${path}`, {
+        headers: { "Content-Type": "application/json" },
+        ...options,
+    });
+    if (!res.ok) {
+        const error = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(error.detail || `API error ${res.status}`);
+    }
+    return res.json() as Promise<T>;
 }
 
-// Health check
-export interface HealthStatus {
-  status: string;
-  model_loaded: boolean;
+// ═══════════════════════════════════════════════════════════════════════════════
+// TYPES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface PredictionRequest {
+    Date: string;
+    Store_ID?: string;
+    Product_ID?: string;
+    Category: string;
+    Region: string;
+    Inventory_Level: number;
+    Units_Sold: number;
+    Units_Ordered: number;
+    Price: number;
+    Discount: number;
+    Weather_Condition: string;
+    Promotion: number;       // 0 or 1
+    Competitor_Pricing: number;
+    Seasonality: string;
+    Epidemic: number;        // 0 or 1
 }
 
-export const checkHealth = () => apiFetch<HealthStatus>("/health");
+export interface PredictionResponse {
+    predicted_demand: number;
+    status: string;
+}
 
-// Dashboard endpoints
 export interface SalesSummary {
-  total_records: number;
-  total_demand: number;
-  avg_price: number;
-  total_units_sold: number;
-  total_promotions: number;
+    total_records: number;
+    total_demand: number;
+    avg_price: number;
+    total_units_sold: number;
+    total_promotions: number;
 }
 
-export interface CategorySales {
-  category: string;
-  total_demand: number;
+export interface CategoryData {
+    Category: string;
+    total_demand: number;
+    total_units_sold: number;
+    avg_price: number;
 }
 
-export interface RegionSales {
-  region: string;
-  total_demand: number;
+export interface RegionData {
+    Region: string;
+    total_demand: number;
+    total_units_sold: number;
+    record_count: number;
 }
 
-export interface SalesTrend {
-  period: string;
-  total_demand: number;
+export interface TrendData {
+    period: string;
+    total_demand: number;
+    total_units_sold: number;
+    avg_price: number;
 }
 
 export interface InventoryStatus {
-  category: string;
-  avg_inventory: number;
-  min_inventory: number;
-  max_inventory: number;
+    Category: string;
+    avg_inventory: number;
+    min_inventory: number;
+    max_inventory: number;
+    avg_units_ordered: number;
 }
 
-export const getSalesSummary = () => apiFetch<SalesSummary>("/sales/summary");
-export const getSalesByCategory = () => apiFetch<CategorySales[]>("/sales/by-category");
-export const getSalesByRegion = () => apiFetch<RegionSales[]>("/sales/by-region");
-export const getSalesTrend = (groupBy: string = "month") =>
-  apiFetch<SalesTrend[]>(`/sales/trend?group_by=${groupBy}`);
-export const getInventoryStatus = () => apiFetch<InventoryStatus[]>("/inventory/status");
-
-// Filter options for prediction form
 export interface FilterOptions {
-  categories: string[];
-  regions: string[];
-  weather_conditions: string[];
-  seasonality: string[];
-  store_ids: (string | number)[];
-  product_ids: (string | number)[];
+    categories: string[];
+    regions: string[];
+    weather_conditions: string[];
+    seasonalities: string[];
+    store_ids: string[];
+    product_ids: string[];
 }
 
-export const getFilterOptions = () => apiFetch<FilterOptions>("/filters/options");
+// ═══════════════════════════════════════════════════════════════════════════════
+// API FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════════════════
 
-// Demand prediction
-export interface PredictionInput {
-  date: string;
-  store_id: string | number;
-  product_id: string | number;
-  category: string;
-  region: string;
-  inventory_level: number;
-  units_sold: number;
-  units_ordered: number;
-  price: number;
-  discount: number;
-  weather_condition: string;
-  promotion: number;
-  competitor_pricing: number;
-  seasonality: string;
-  epidemic: number;
-}
+/** Health check — use on app load to verify backend is reachable */
+export const checkHealth = () =>
+    apiFetch<{ status: string; model_loaded: boolean; db_connected: boolean }>("/health");
 
-export interface PredictionResult {
-  predicted_demand: number;
-}
+/** Run demand prediction with the ML model */
+export const predictDemand = (payload: PredictionRequest) =>
+    apiFetch<PredictionResponse>("/predict", {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
 
-export const predictDemand = (input: PredictionInput) =>
-  apiFetch<PredictionResult>("/predict", {
-    method: "POST",
-    body: JSON.stringify(input),
-  });
+/** KPI summary cards */
+export const getSalesSummary = () =>
+    apiFetch<SalesSummary>("/sales/summary");
+
+/** Demand & units sold by product category */
+export const getSalesByCategory = () =>
+    apiFetch<{ data: CategoryData[] }>("/sales/by-category");
+
+/** Demand by region */
+export const getSalesByRegion = () =>
+    apiFetch<{ data: RegionData[] }>("/sales/by-region");
+
+/**
+ * Time-series demand trend
+ * @param groupBy  "day" | "month" | "year"  (default: "month")
+ */
+export const getSalesTrend = (groupBy: "day" | "month" | "year" = "month") =>
+    apiFetch<{ data: TrendData[]; group_by: string }>(`/sales/trend?group_by=${groupBy}`);
+
+/** Inventory levels by category */
+export const getInventoryStatus = () =>
+    apiFetch<{ data: InventoryStatus[] }>("/sales/inventory-status");
+
+/**
+ * Raw sales records with optional filters
+ * @param filters  { category?, region?, store_id?, limit?, offset? }
+ */
+export const getSalesRecords = (filters?: {
+    category?: string;
+    region?: string;
+    store_id?: string;
+    limit?: number;
+    offset?: number;
+}) => {
+    const params = new URLSearchParams();
+    if (filters?.category) params.set("category", filters.category);
+    if (filters?.region) params.set("region", filters.region);
+    if (filters?.store_id) params.set("store_id", filters.store_id);
+    if (filters?.limit) params.set("limit", String(filters.limit));
+    if (filters?.offset) params.set("offset", String(filters.offset));
+    return apiFetch<{ data: Record<string, unknown>[]; count: number }>(
+        `/sales?${params.toString()}`
+    );
+};
+
+/** All valid dropdown values for the prediction form */
+export const getFilterOptions = () =>
+    apiFetch<FilterOptions>("/meta/options");
