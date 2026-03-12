@@ -157,3 +157,27 @@ export const getSalesRecords = (filters?: {
 /** All valid dropdown values for the prediction form */
 export const getFilterOptions = () =>
     apiFetch<FilterOptions>("/meta/options");
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// OUTAGE / FORECAST
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface ForecastDay {
+    date: string;
+    day: string;
+    demand_kwh: number;
+    outage_probability: number;
+    risk_level: "Low" | "Medium" | "High";
+    affected_zones: string[];
+    weather_factors: string[];
+    recommended_actions: string[];
+}
+
+export interface ForecastResponse {
+    generated_at: string;
+    forecast: ForecastDay[];
+}
+
+/** 7-day outage forecast */
+export const getOutageForecast = () =>
+    apiFetch<ForecastResponse>("/api/forecast");
