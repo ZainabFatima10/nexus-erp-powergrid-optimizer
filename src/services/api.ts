@@ -5,8 +5,7 @@
 // or set VITE_API_URL in your Lovable project environment variables.
 // ─────────────────────────────────────────────────────────────────────────────
 
-// @ts-ignore
-const API_BASE_URL = "https://true-dogs-begin.loca.lt";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://phenomenon-emotional-heaven-limiting.trycloudflare.com";
 
 // ─── Generic fetch wrapper ────────────────────────────────────────────────────
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
