@@ -180,3 +180,36 @@ export interface ForecastResponse {
 /** 7-day outage forecast */
 export const getOutageForecast = () =>
     apiFetch<ForecastResponse>("/api/forecast");
+
+/** Forecast for a specific date */
+export const getForecastByDate = (date: string) =>
+    apiFetch<ForecastDay>(`/api/forecast/${date}`);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// INVENTORY ENDPOINTS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** Inventory overview */
+export const getInventoryOverview = () =>
+    apiFetch<Record<string, unknown>>("/api/inventory/overview");
+
+/** Current orders */
+export const getCurrentOrders = () =>
+    apiFetch<Record<string, unknown>>("/api/inventory/orders/current");
+
+/** Order history */
+export const getOrderHistory = () =>
+    apiFetch<Record<string, unknown>>("/api/inventory/orders/history");
+
+/** Check inventory for an item */
+export const checkInventory = (payload: Record<string, unknown>) =>
+    apiFetch<Record<string, unknown>>("/api/inventory/check", {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
+
+/** Reorder an item */
+export const reorderItem = (itemId: string) =>
+    apiFetch<Record<string, unknown>>(`/api/inventory/reorder/${itemId}`, {
+        method: "POST",
+    });
