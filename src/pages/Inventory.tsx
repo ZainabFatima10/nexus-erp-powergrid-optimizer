@@ -509,7 +509,12 @@ const Inventory = () => {
                 <label className="block text-sm font-medium text-muted-foreground mb-1.5">Select Item</label>
                 <select
                   value={manualItem}
-                  onChange={(e) => setManualItem(e.target.value)}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setManualItem(id);
+                    const picked = items.find((i) => i.item_id === id);
+                    if (picked) setManualQty(picked.reorder_quantity);
+                  }}
                   className="w-full px-4 py-2.5 rounded-lg bg-muted/50 border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <option value="">— Select an item —</option>
