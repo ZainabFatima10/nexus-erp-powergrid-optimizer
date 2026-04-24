@@ -33,7 +33,22 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 // HEALTH
 // ═══════════════════════════════════════════════════════════════════════════════
 export const checkHealth = () =>
-  apiFetch<{ status: string; db_connected: boolean; version: string }>("/health");
+  apiFetch<{ status: string; db_connected: boolean; version: string; model_loaded?: boolean }>("/health");
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FILTER OPTIONS (for prediction form)
+// ═══════════════════════════════════════════════════════════════════════════════
+export interface FilterOptions {
+  store_ids: string[];
+  product_ids: string[];
+  categories: string[];
+  regions: string[];
+  weather_conditions: string[];
+  seasonalities: string[];
+}
+
+export const getFilterOptions = () =>
+  apiFetch<FilterOptions>("/sales/filter-options");
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // AUTH
