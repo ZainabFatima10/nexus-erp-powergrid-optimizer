@@ -1,33 +1,55 @@
-// src/pages/Inventory.tsx
 import { useState, useEffect, useCallback } from "react";
 import {
-  ArrowUpDown, Download, Plus, X, Info, RefreshCw,
-  CheckCircle2, AlertTriangle, XCircle, Loader2,
-  Package, TruckIcon, FileCheck, History,
+  RefreshCw, Loader2, Plus, X, Info,
+  Package, CheckCircle2, AlertTriangle, XCircle,
+  TruckIcon, History, FileCheck, Send,
 } from "lucide-react";
 import {
-  getInventoryOverview, listOrders, runInventoryCheck,
-  manualReorder, InventoryItem, ProcurementOrder,
+  getInventoryOverview, getCurrentOrders, getPastOrders,
+  triggerInventoryCheck, acceptOrder, manualReorder,
+  InventoryItem, Order,
 } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
-import OrderDetailModal from "@/components/OrderDetailModal";
 
-type SortDir = "asc" | "desc";
+type CategoryTab = "All" | "Generation" | "Infrastructure" | "Operational";
+type SubTab = "overview" | "orders" | "history" | "reorders";
 
-const StatusBadge = ({ status }: { status: string }) => {
-  const colors: Record<string, string> = {
-    OK:         "bg-success/10 text-success",
-    Low:        "bg-warning/10 text-warning",
-    Critical:   "bg-destructive/10 text-destructive",
-    Verified:   "bg-success/10 text-success",
-    Pending:    "bg-warning/10 text-warning",
-    Signed:     "bg-success/10 text-success",
-    Executed:   "bg-primary/10 text-primary",
-    Rejected:   "bg-destructive/10 text-destructive",
-    Unverified: "bg-destructive/10 text-destructive",
+const CategoryBadge = ({ category }: { category: string }) => {
+  const styles: Record<string, string> = {
+    Generation: "bg-yellow-500/10 text-yellow-600 border-yellow-500/30",
+    Infrastructure: "bg-blue-500/10 text-blue-600 border-blue-500/30",
+    Operational: "bg-green-500/10 text-green-600 border-green-500/30",
   };
   return (
-    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${colors[status] || "bg-muted text-muted-foreground"}`}>
+    <span
+      className={`text-[10px] px-2 py-0.5 font-semibold border ${styles[category] || "bg-muted text-muted-foreground border-border"}`}
+      style={{ borderRadius: 20 }}
+    >
+      {category}
+    </span>
+  );
+};
+
+const StatusBadge = ({ status }: { status: string }) => {
+  if (status === "Critical") {
+    return (
+      <span
+        className="text-[10px] px-2 py-0.5 font-semibold bg-destructive/10 text-destructive border border-destructive/30 animate-pulse"
+        style={{ borderRadius: 20 }}
+      >
+        Critical
+      </span>
+    );
+  }
+  const styles: Record<string, string> = {
+    OK: "bg-success/10 text-success border-success/30",
+    Low: "bg-warning/10 text-warning border-warning/30",
+  };
+  return (
+    <span
+      className={`text-[10px] px-2 py-0.5 font-semibold border ${styles[status] || "bg-muted text-muted-foreground border-border"}`}
+      style={{ borderRadius: 20 }}
+    >
       {status}
     </span>
   );
@@ -35,99 +57,74 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 const TriggerBadge = ({ type }: { type: string }) => {
   const styles: Record<string, string> = {
-    "VEMA-Triggered":  "bg-destructive/10 text-destructive border border-destructive/20",
-    "Auto-Generated":  "bg-warning/10 text-warning border border-warning/20",
-    "Manual":          "bg-muted text-muted-foreground border border-border",
+    "VEMA-Triggered": "bg-destructive/10 text-destructive border-destructive/30",
+    "Auto-Generated": "bg-warning/10 text-warning border-warning/30",
+    Manual: "bg-blue-500/10 text-blue-600 border-blue-500/30",
   };
   return (
-    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${styles[type] || "bg-muted text-muted-foreground"}`}>
+    <span
+      className={`text-[10px] px-2 py-0.5 font-semibold border ${styles[type] || "bg-muted text-muted-foreground border-border"}`}
+      style={{ borderRadius: 20 }}
+    >
       {type}
     </span>
   );
 };
 
-const StockBar = ({ pct }: { pct: number }) => {
-  const color = pct <= 20 ? "bg-destructive" : pct < 100 ? "bg-warning" : "bg-success";
+const StageBadge = ({ stage }: { stage: string }) => {
+  const styles: Record<string, string> = {
+    "Pending Verification": "bg-muted text-muted-foreground border-border",
+    "Order Placed": "bg-blue-500/10 text-blue-600 border-blue-500/30",
+    "Email Sent": "bg-success/10 text-success border-success/30",
+  };
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 bg-muted/50 rounded-full overflow-hidden">
-        <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.min(pct, 100)}%` }} />
-      </div>
-      <span className="text-xs text-muted-foreground w-10 text-right">{pct}%</span>
-    </div>
-  );
-};
-
-const STAGE_STEPS = [
-  "Pending Verification",
-  "Vendor Notified",
-  "Email Confirmed",
-  "Contract Signed",
-  "Manufacturing",
-  "Shipping",
-  "Delivered",
-];
-
-const OrderStepper = ({ stage }: { stage: string }) => {
-  const idx = STAGE_STEPS.indexOf(stage);
-  return (
-    <div className="flex items-center gap-1 flex-wrap">
-      {STAGE_STEPS.map((s, i) => (
-        <div key={s} className="flex items-center gap-1">
-          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-            i < idx ? "bg-success" : i === idx ? "bg-primary" : "bg-muted/40"
-          }`} />
-          {i < STAGE_STEPS.length - 1 && (
-            <div className={`h-px w-3 ${i < idx ? "bg-success" : "bg-muted/30"}`} />
-          )}
-        </div>
-      ))}
-      <span className="text-xs ml-1 text-muted-foreground">{stage}</span>
-    </div>
+    <span
+      className={`text-[10px] px-2 py-0.5 font-semibold border ${styles[stage] || "bg-muted text-muted-foreground border-border"}`}
+      style={{ borderRadius: 20 }}
+    >
+      {stage}
+    </span>
   );
 };
 
 const Inventory = () => {
   const { toast } = useToast();
-  const [tab, setTab] = useState<"overview" | "orders" | "history" | "reorders">("overview");
-  const [sortCol, setSortCol]   = useState<string | null>(null);
-  const [sortDir, setSortDir]   = useState<SortDir>("asc");
-  const [showModal, setShowModal] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<ProcurementOrder | null>(null);
-  const [showManualModal, setShowManualModal] = useState(false);
+  const [category, setCategory] = useState<CategoryTab>("All");
+  const [tab, setTab] = useState<SubTab>("overview");
 
-  // Data
-  const [items, setItems]           = useState<InventoryItem[]>([]);
-  const [summary, setSummary]       = useState({ total_items: 0, ok: 0, low: 0, critical: 0 });
-  const [activeOrders, setActive]   = useState<ProcurementOrder[]>([]);
-  const [pastOrders, setPast]       = useState<ProcurementOrder[]>([]);
-  const [loading, setLoading]       = useState(true);
+  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [summary, setSummary] = useState({ total_items: 0, ok: 0, low: 0, critical: 0 });
+  const [currentOrders, setCurrentOrders] = useState<Order[]>([]);
+  const [pastOrders, setPastOrders] = useState<Order[]>([]);
+
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Manual reorder form
+  const [showManualModal, setShowManualModal] = useState(false);
   const [manualItem, setManualItem] = useState("");
-  const [manualQty, setManualQty]   = useState(100);
-  const [manualPrice, setManualPrice] = useState("");
-  const [placing, setPlacing]       = useState(false);
+  const [manualQty, setManualQty] = useState(100);
+  const [placing, setPlacing] = useState(false);
+
+  const catParam = category === "All" ? undefined : category;
 
   const load = useCallback(async () => {
     try {
-      const [inv, ordersRes] = await Promise.all([
-        getInventoryOverview(),
-        listOrders({ limit: 200 }),
+      const [inv, cur, past] = await Promise.all([
+        getInventoryOverview(catParam),
+        getCurrentOrders(catParam),
+        getPastOrders(catParam),
       ]);
       setItems(inv.items);
       setSummary(inv.summary);
-      const all = ordersRes.orders;
-      setActive(all.filter((o) => o.stage !== "Delivered" && o.stage !== "Cancelled"));
-      setPast(all.filter((o) => o.stage === "Delivered"));
-    } catch {
-      toast({ title: "Failed to load inventory", variant: "destructive" });
+      setCurrentOrders(cur.orders);
+      setPastOrders(past.orders);
+    } catch (e) {
+      toast({ title: "Failed to load inventory", description: String(e), variant: "destructive" });
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [toast]);
+  }, [catParam, toast]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -136,11 +133,23 @@ const Inventory = () => {
   const handleInventoryCheck = async () => {
     setRefreshing(true);
     try {
-      const res = await runInventoryCheck();
-      toast({ title: `✅ ${res.message}` });
+      const res = await triggerInventoryCheck();
+      const n = res.order_ids?.length ?? 0;
+      toast({ title: `${n} new order${n === 1 ? "" : "s"} generated` });
       await load();
-    } catch (e: unknown) {
+    } catch (e) {
       toast({ title: "Check failed", description: String(e), variant: "destructive" });
+      setRefreshing(false);
+    }
+  };
+
+  const handleAccept = async (orderId: string) => {
+    try {
+      await acceptOrder(orderId, "Procurement Officer");
+      toast({ title: "Order accepted — Smart contract verified — Vendor email sent" });
+      await load();
+    } catch (e) {
+      toast({ title: "Accept failed", description: String(e), variant: "destructive" });
     }
   };
 
@@ -148,45 +157,24 @@ const Inventory = () => {
     if (!manualItem) return;
     setPlacing(true);
     try {
-      await manualReorder(manualItem, manualQty, manualPrice ? Number(manualPrice) : undefined);
-      toast({ title: "✅ Manual reorder placed" });
+      await manualReorder(manualItem, manualQty);
+      toast({ title: "Manual reorder placed" });
       setShowManualModal(false);
       await load();
-    } catch (e: unknown) {
+    } catch (e) {
       toast({ title: "Failed", description: String(e), variant: "destructive" });
     } finally { setPlacing(false); }
   };
 
-  const toggleSort = (col: string) => {
-    if (sortCol === col) setSortDir(sortDir === "asc" ? "desc" : "asc");
-    else { setSortCol(col); setSortDir("asc"); }
-  };
-
-  const SortHeader = ({ col, children }: { col: string; children: React.ReactNode }) => (
-    <th
-      className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
-      onClick={() => toggleSort(col)}
-    >
-      <div className="flex items-center gap-1">{children}<ArrowUpDown size={12} /></div>
-    </th>
-  );
-
-  const tabs = [
-    { key: "overview" as const,  label: "Overview",       icon: Package },
-    { key: "orders" as const,    label: "Current Orders", icon: TruckIcon },
-    { key: "history" as const,   label: "History",        icon: History },
-    { key: "reorders" as const,  label: "Reorders",       icon: FileCheck },
+  const categoryTabs: CategoryTab[] = ["All", "Generation", "Infrastructure", "Operational"];
+  const subTabs: { key: SubTab; label: string; icon: typeof Package }[] = [
+    { key: "overview", label: "Overview", icon: Package },
+    { key: "orders", label: "Current Orders", icon: TruckIcon },
+    { key: "history", label: "Past History", icon: History },
+    { key: "reorders", label: "Reorders", icon: FileCheck },
   ];
 
-  const banners: Record<string, string> = {
-    overview: "Real-time inventory from PostgreSQL. Critical items (≤20% threshold) auto-trigger VEMA reorders.",
-    orders:   "Live procurement orders. Click any order to view contract details, tracking, and check-in history.",
-    history:  "Delivered orders with blockchain execution hashes — immutably recorded on Hyperledger Fabric.",
-    reorders: "Items below threshold flagged for reorder. VEMA auto-triggers critical items; Auto-Generated handles Low stock.",
-  };
-
-  const criticalItems = items.filter((i) => i.status === "Critical");
-  const lowItems      = items.filter((i) => i.status === "Low");
+  const lowOrCritical = items.filter((i) => i.status === "Low" || i.status === "Critical");
 
   if (loading) {
     return (
@@ -203,18 +191,22 @@ const Inventory = () => {
         <div>
           <h1 className="text-2xl font-heading font-bold">Inventory Management</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Track stock, procurement orders, blockchain contracts, and delivery check-ins.
+            Real-time stock, procurement orders, and reorder triggers.
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={handleRefresh}
-            className="flex items-center gap-2 px-3 py-2 text-sm border border-border rounded-lg hover:bg-muted/30 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 text-sm border border-border hover:bg-muted/30 transition-colors"
+            style={{ borderRadius: 20 }}
           >
-            <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
-            Refresh
+            <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} /> Refresh
           </button>
-          <button onClick={handleInventoryCheck} className="flex items-center gap-2 px-4 py-2 text-sm font-medium btn-navy">
+          <button
+            onClick={handleInventoryCheck}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium btn-navy"
+            style={{ borderRadius: 20 }}
+          >
             <RefreshCw size={14} /> Run Inventory Check
           </button>
         </div>
@@ -223,12 +215,12 @@ const Inventory = () => {
       {/* Summary KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: "Total Items",  value: summary.total_items, icon: Package,       color: "text-primary" },
-          { label: "OK",           value: summary.ok,          icon: CheckCircle2,  color: "text-success" },
-          { label: "Low Stock",    value: summary.low,         icon: AlertTriangle, color: "text-warning" },
-          { label: "Critical",     value: summary.critical,    icon: XCircle,       color: "text-destructive" },
+          { label: "Total", value: summary.total_items, icon: Package, color: "text-primary" },
+          { label: "OK", value: summary.ok, icon: CheckCircle2, color: "text-success" },
+          { label: "Low", value: summary.low, icon: AlertTriangle, color: "text-warning" },
+          { label: "Critical", value: summary.critical, icon: XCircle, color: "text-destructive" },
         ].map((k) => (
-          <div key={k.label} className="glass-card p-4 glow-cyan-hover">
+          <div key={k.label} className="glass-card p-4 glow-cyan-hover" style={{ borderRadius: 20 }}>
             <div className="flex items-center gap-2 mb-2">
               <k.icon size={18} className={k.color} />
               <span className="text-xs text-muted-foreground">{k.label}</span>
@@ -238,19 +230,25 @@ const Inventory = () => {
         ))}
       </div>
 
-      {/* Alert strip for critical items */}
-      {criticalItems.length > 0 && (
-        <div className="glass-card p-3 border-destructive/40 bg-destructive/5 flex items-center gap-2">
-          <XCircle size={16} className="text-destructive flex-shrink-0" />
-          <p className="text-xs text-destructive font-medium">
-            🔴 CRITICAL: {criticalItems.map((i) => i.name).join(", ")} — VEMA reorder triggered automatically.
-          </p>
-        </div>
-      )}
-
-      {/* Tabs */}
+      {/* Category tabs */}
       <div className="flex gap-1 bg-muted/30 p-1 w-fit flex-wrap" style={{ borderRadius: 20 }}>
-        {tabs.map((t) => (
+        {categoryTabs.map((c) => (
+          <button
+            key={c}
+            onClick={() => setCategory(c)}
+            style={{ borderRadius: 20 }}
+            className={`px-4 py-1.5 text-xs font-medium transition-all ${
+              category === c ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {c}
+          </button>
+        ))}
+      </div>
+
+      {/* Sub tabs */}
+      <div className="flex gap-1 bg-muted/30 p-1 w-fit flex-wrap" style={{ borderRadius: 20 }}>
+        {subTabs.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
@@ -259,236 +257,174 @@ const Inventory = () => {
               tab === t.key ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <t.icon size={14} />
-            {t.label}
+            <t.icon size={14} /> {t.label}
           </button>
         ))}
       </div>
 
-      {/* Info banner */}
-      <div className="flex items-start gap-2 glass-card p-3 border-accent-cyan">
-        <Info size={16} className="text-primary mt-0.5 flex-shrink-0" />
-        <p className="text-xs text-muted-foreground">{banners[tab]}</p>
-      </div>
-
-      {/* ── OVERVIEW TAB ────────────────────────────────────────────────── */}
+      {/* OVERVIEW */}
       {tab === "overview" && (
-        <div className="glass-card overflow-hidden">
+        <div className="glass-card overflow-hidden" style={{ borderRadius: 20 }}>
           <table className="w-full">
             <thead className="bg-muted/20">
               <tr>
-                <SortHeader col="name">Item Name</SortHeader>
-                <SortHeader col="stock">Stock</SortHeader>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Level</th>
-                <SortHeader col="status">Status</SortHeader>
-                <SortHeader col="days_until_reorder">Days to Reorder</SortHeader>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Vendor</th>
-                <SortHeader col="last_updated">Updated</SortHeader>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/50">
-              {items.map((item) => (
-                <tr key={item.item_id} className="hover:bg-muted/10 transition-colors">
-                  <td className="px-4 py-3 text-sm font-medium">{item.name}</td>
-                  <td className="px-4 py-3 text-sm font-mono">
-                    {item.current_stock.toLocaleString()} {item.unit}
-                  </td>
-                  <td className="px-4 py-3 w-32"><StockBar pct={item.stock_pct} /></td>
-                  <td className="px-4 py-3"><StatusBadge status={item.status} /></td>
-                  <td className="px-4 py-3 text-sm text-center">
-                    {item.days_until_reorder === 0
-                      ? <span className="text-destructive font-semibold">Now</span>
-                      : item.days_until_reorder}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{item.vendor_name}</td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">
-                    {new Date(item.last_updated).toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* ── CURRENT ORDERS TAB ──────────────────────────────────────────── */}
-      {tab === "orders" && (
-        <div className="glass-card overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-muted/20">
-              <tr>
-                <SortHeader col="order_code">Order ID</SortHeader>
-                <SortHeader col="item_name">Item</SortHeader>
-                <SortHeader col="quantity">Qty</SortHeader>
-                <SortHeader col="vendor_name">Vendor</SortHeader>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Trigger</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Contract</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Progress</th>
-                <SortHeader col="expected_delivery">Delivery</SortHeader>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/50">
-              {activeOrders.length === 0 && (
-                <tr>
-                  <td colSpan={9} className="px-4 py-8 text-center text-sm text-muted-foreground">
-                    No active orders. Run Inventory Check to generate orders.
-                  </td>
-                </tr>
-              )}
-              {activeOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-muted/10 transition-colors">
-                  <td className="px-4 py-3 text-sm font-mono text-primary">{order.order_code}</td>
-                  <td className="px-4 py-3 text-sm font-medium">{order.item_name}</td>
-                  <td className="px-4 py-3 text-sm">{order.quantity.toLocaleString()} {order.unit}</td>
-                  <td className="px-4 py-3 text-sm">{order.vendor_name}</td>
-                  <td className="px-4 py-3"><TriggerBadge type={order.trigger_type} /></td>
-                  <td className="px-4 py-3"><StatusBadge status={order.contract_status} /></td>
-                  <td className="px-4 py-3 min-w-[200px]"><OrderStepper stage={order.stage} /></td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{order.expected_delivery}</td>
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => { setSelectedOrder(order); setShowModal(true); }}
-                      className="text-xs text-primary hover:underline whitespace-nowrap"
-                    >
-                      View Details
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* ── HISTORY TAB ─────────────────────────────────────────────────── */}
-      {tab === "history" && (
-        <>
-          <div className="flex justify-end">
-            <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium btn-navy">
-              <Download size={16} /> Export
-            </button>
-          </div>
-          <div className="glass-card overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-muted/20">
-                <tr>
-                  <SortHeader col="order_code">Order ID</SortHeader>
-                  <SortHeader col="item_name">Item</SortHeader>
-                  <SortHeader col="quantity">Qty</SortHeader>
-                  <SortHeader col="vendor_name">Vendor</SortHeader>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Tx Hash</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Condition</th>
-                  <SortHeader col="actual_delivery">Delivered</SortHeader>
-                  <th className="px-4 py-3" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/50">
-                {pastOrders.length === 0 && (
-                  <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-sm text-muted-foreground">
-                      No delivered orders yet.
-                    </td>
-                  </tr>
-                )}
-                {pastOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-muted/10 transition-colors">
-                    <td className="px-4 py-3 text-sm font-mono text-primary">{order.order_code}</td>
-                    <td className="px-4 py-3 text-sm">{order.item_name}</td>
-                    <td className="px-4 py-3 text-sm">{order.quantity.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-sm">{order.vendor_name}</td>
-                    <td className="px-4 py-3 text-xs font-mono text-muted-foreground">
-                      {order.contract_hash
-                        ? `${order.contract_hash.slice(0, 10)}…${order.contract_hash.slice(-6)}`
-                        : "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      {order.delivery_condition && <StatusBadge status={order.delivery_condition} />}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{order.actual_delivery || "—"}</td>
-                    <td className="px-4 py-3">
-                      <button
-                        onClick={() => { setSelectedOrder(order); setShowModal(true); }}
-                        className="text-xs text-primary hover:underline"
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
+                {["Item ID", "Item Name", "Category", "Current Stock", "Min Threshold", "Status", "Days to Reorder", "Vendor"].map((h) => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{h}</th>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/50">
+              {items.length === 0 && (
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-sm text-muted-foreground">No items.</td></tr>
+              )}
+              {items.map((i) => (
+                <tr key={i.item_id} className="hover:bg-muted/10 transition-colors">
+                  <td className="px-4 py-3 text-xs font-mono text-primary">{i.item_id}</td>
+                  <td className="px-4 py-3 text-sm font-medium">{i.name}</td>
+                  <td className="px-4 py-3"><CategoryBadge category={i.category} /></td>
+                  <td className="px-4 py-3 text-sm font-mono">{i.current_stock?.toLocaleString()} {i.unit}</td>
+                  <td className="px-4 py-3 text-sm">{i.min_threshold?.toLocaleString()}</td>
+                  <td className="px-4 py-3"><StatusBadge status={i.status} /></td>
+                  <td className="px-4 py-3 text-sm text-center">
+                    {i.days_until_reorder === 0
+                      ? <span className="text-destructive font-semibold">Now</span>
+                      : i.days_until_reorder}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">{i.vendor}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
-      {/* ── REORDERS TAB ────────────────────────────────────────────────── */}
+      {/* CURRENT ORDERS */}
+      {tab === "orders" && (
+        <div className="glass-card overflow-hidden" style={{ borderRadius: 20 }}>
+          <table className="w-full">
+            <thead className="bg-muted/20">
+              <tr>
+                {["Order ID", "Item", "Category", "Qty", "Vendor", "Trigger Type", "Stage", "Contract", "Expected Delivery", "Action"].map((h) => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/50">
+              {currentOrders.length === 0 && (
+                <tr><td colSpan={10} className="px-4 py-8 text-center text-sm text-muted-foreground">No active orders.</td></tr>
+              )}
+              {currentOrders.map((o) => (
+                <tr key={o.order_id} className="hover:bg-muted/10 transition-colors">
+                  <td className="px-4 py-3 text-xs font-mono text-primary">{o.order_id}</td>
+                  <td className="px-4 py-3 text-sm font-medium">{o.item_name}</td>
+                  <td className="px-4 py-3"><CategoryBadge category={o.category} /></td>
+                  <td className="px-4 py-3 text-sm">{o.quantity?.toLocaleString()} {o.unit}</td>
+                  <td className="px-4 py-3 text-sm">{o.vendor}</td>
+                  <td className="px-4 py-3"><TriggerBadge type={o.trigger_type} /></td>
+                  <td className="px-4 py-3"><StageBadge stage={o.stage} /></td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{o.contract_status}</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">{o.expected_delivery}</td>
+                  <td className="px-4 py-3">
+                    {o.stage === "Pending Verification" && (
+                      <button
+                        onClick={() => handleAccept(o.order_id)}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium btn-navy"
+                        style={{ borderRadius: 20 }}
+                      >
+                        <Send size={12} /> Accept &amp; Send
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* PAST HISTORY */}
+      {tab === "history" && (
+        <div className="glass-card overflow-hidden" style={{ borderRadius: 20 }}>
+          <table className="w-full">
+            <thead className="bg-muted/20">
+              <tr>
+                {["Order ID", "Item", "Category", "Qty", "Vendor", "Accepted By", "Stage", "Expected Delivery"].map((h) => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/50">
+              {pastOrders.length === 0 && (
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-sm text-muted-foreground">No past orders.</td></tr>
+              )}
+              {pastOrders.map((o) => (
+                <tr key={o.order_id} className="hover:bg-muted/10 transition-colors">
+                  <td className="px-4 py-3 text-xs font-mono text-primary">{o.order_id}</td>
+                  <td className="px-4 py-3 text-sm font-medium">{o.item_name}</td>
+                  <td className="px-4 py-3"><CategoryBadge category={o.category} /></td>
+                  <td className="px-4 py-3 text-sm">{o.quantity?.toLocaleString()} {o.unit}</td>
+                  <td className="px-4 py-3 text-sm">{o.vendor}</td>
+                  <td className="px-4 py-3 text-sm">{o.accepted_by ?? "—"}</td>
+                  <td className="px-4 py-3"><StageBadge stage={o.stage} /></td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">{o.expected_delivery}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* REORDERS */}
       {tab === "reorders" && (
         <>
+          <div className="flex items-start gap-2 glass-card p-3 border-accent-cyan" style={{ borderRadius: 20 }}>
+            <Info size={16} className="text-primary mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              Items below threshold flagged for reorder. Critical items auto-trigger VEMA reorders.
+            </p>
+          </div>
           <div className="flex justify-end">
             <button
               onClick={() => setShowManualModal(true)}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium btn-navy"
+              style={{ borderRadius: 20 }}
             >
-              <Plus size={16} /> Manually Place Reorder
+              <Plus size={16} /> Manual Reorder
             </button>
           </div>
-          <div className="glass-card overflow-hidden">
+          <div className="glass-card overflow-hidden" style={{ borderRadius: 20 }}>
             <table className="w-full">
               <thead className="bg-muted/20">
                 <tr>
-                  <SortHeader col="name">Item Name</SortHeader>
-                  <SortHeader col="current_stock">Current Stock</SortHeader>
-                  <SortHeader col="min_threshold">Min Threshold</SortHeader>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Trigger Type</th>
-                  <SortHeader col="days_until_critical">Days to Critical</SortHeader>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Reorder Qty</th>
+                  {["Item", "Category", "Current Stock", "Min Threshold", "Critical At (20%)", "Status", "Trigger Type"].map((h) => (
+                    <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
-                {[...criticalItems, ...lowItems].map((item) => (
-                  <tr key={item.item_id} className="hover:bg-muted/10 transition-colors">
-                    <td className="px-4 py-3 text-sm font-medium">{item.name}</td>
-                    <td className="px-4 py-3 text-sm text-destructive font-semibold">
-                      {item.current_stock.toLocaleString()} {item.unit}
-                    </td>
-                    <td className="px-4 py-3 text-sm">{item.min_threshold.toLocaleString()}</td>
-                    <td className="px-4 py-3"><StatusBadge status={item.status} /></td>
+                {lowOrCritical.length === 0 && (
+                  <tr><td colSpan={7} className="px-4 py-8 text-center text-sm text-muted-foreground">All inventory levels are healthy.</td></tr>
+                )}
+                {lowOrCritical.map((i) => (
+                  <tr key={i.item_id} className="hover:bg-muted/10 transition-colors">
+                    <td className="px-4 py-3 text-sm font-medium">{i.name}</td>
+                    <td className="px-4 py-3"><CategoryBadge category={i.category} /></td>
+                    <td className="px-4 py-3 text-sm text-destructive font-semibold">{i.current_stock?.toLocaleString()} {i.unit}</td>
+                    <td className="px-4 py-3 text-sm">{i.min_threshold?.toLocaleString()}</td>
+                    <td className="px-4 py-3 text-sm">{i.critical_threshold?.toLocaleString() ?? Math.round((i.min_threshold || 0) * 0.2)}</td>
+                    <td className="px-4 py-3"><StatusBadge status={i.status} /></td>
                     <td className="px-4 py-3">
-                      <TriggerBadge type={item.status === "Critical" ? "VEMA-Triggered" : "Auto-Generated"} />
+                      <TriggerBadge type={i.status === "Critical" ? "VEMA-Triggered" : "Auto-Generated"} />
                     </td>
-                    <td className="px-4 py-3 text-sm text-center">
-                      {item.days_until_critical === 0
-                        ? <span className="text-destructive font-semibold">Now</span>
-                        : item.days_until_critical}
-                    </td>
-                    <td className="px-4 py-3 text-sm">{item.reorder_quantity.toLocaleString()}</td>
                   </tr>
                 ))}
-                {criticalItems.length === 0 && lowItems.length === 0 && (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-sm text-muted-foreground">
-                      ✅ All inventory levels are healthy.
-                    </td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>
         </>
       )}
 
-      {/* ── ORDER DETAIL MODAL ──────────────────────────────────────────── */}
-      {showModal && selectedOrder && (
-        <OrderDetailModal
-          order={selectedOrder}
-          onClose={() => { setShowModal(false); setSelectedOrder(null); }}
-          onUpdate={load}
-        />
-      )}
-
-      {/* ── MANUAL REORDER MODAL ────────────────────────────────────────── */}
+      {/* MANUAL REORDER MODAL */}
       {showManualModal && (
         <div
           className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50"
@@ -496,10 +432,11 @@ const Inventory = () => {
         >
           <div
             className="glass-card p-6 w-full max-w-md mx-4 glow-cyan animate-slide-up"
+            style={{ borderRadius: 20 }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-heading font-bold text-lg">Place Manual Reorder</h3>
+              <h3 className="font-heading font-bold text-lg">Manual Reorder</h3>
               <button onClick={() => setShowManualModal(false)} className="text-muted-foreground hover:text-foreground">
                 <X size={20} />
               </button>
@@ -513,9 +450,10 @@ const Inventory = () => {
                     const id = e.target.value;
                     setManualItem(id);
                     const picked = items.find((i) => i.item_id === id);
-                    if (picked) setManualQty(picked.reorder_quantity);
+                    if (picked) setManualQty(picked.reorder_quantity || 100);
                   }}
-                  className="w-full px-4 py-2.5 rounded-lg bg-muted/50 border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-4 py-2.5 bg-muted/50 border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  style={{ borderRadius: 20 }}
                 >
                   <option value="">— Select an item —</option>
                   {items.map((i) => (
@@ -531,25 +469,15 @@ const Inventory = () => {
                   type="number"
                   value={manualQty}
                   onChange={(e) => setManualQty(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 rounded-lg bg-muted/50 border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1.5">
-                  Unit Price (USD) <span className="text-muted-foreground text-xs">— optional</span>
-                </label>
-                <input
-                  type="number"
-                  value={manualPrice}
-                  onChange={(e) => setManualPrice(e.target.value)}
-                  placeholder="Leave blank to omit"
-                  className="w-full px-4 py-2.5 rounded-lg bg-muted/50 border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-4 py-2.5 bg-muted/50 border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  style={{ borderRadius: 20 }}
                 />
               </div>
               <button
                 onClick={handleManualReorder}
                 disabled={!manualItem || placing}
                 className="w-full py-2.5 font-semibold btn-navy disabled:opacity-50 flex items-center justify-center gap-2"
+                style={{ borderRadius: 20 }}
               >
                 {placing && <Loader2 size={16} className="animate-spin" />}
                 Confirm Reorder
