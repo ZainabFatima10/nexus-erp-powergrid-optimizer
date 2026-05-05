@@ -13,7 +13,7 @@ declare global {
   }
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE_URL = "https://specifies-careful-fishing-installed.trycloudflare.com";
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
