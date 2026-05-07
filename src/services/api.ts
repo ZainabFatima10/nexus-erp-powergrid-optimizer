@@ -191,16 +191,7 @@ export const checkHealth = () =>
 
 export const getFilterOptions = () =>
   Promise.resolve<FilterOptions>({
-    categories: [
-      "Gas Turbine Blades", "Generator Rotor Coils", "Diesel Fuel Stock",
-      "Cooling Tower Fills", "Steam Boiler Tubes", "Transformer Oil",
-      "Generator Brushes", "Fuel Filters", "Distribution Transformers",
-      "Circuit Breakers", "Power Cables", "Transmission Towers",
-      "Insulators", "Surge Arresters", "Underground Cable Joints",
-      "ACSR Conductors", "Smart Meters", "Relay Protection Units",
-      "Copper Conductors", "Safety Helmets", "Insulated Gloves",
-      "Multimeters", "Cable Ties and Conduits", "Earthing Kits",
-    ],
+    categories: ["Generation", "Infrastructure", "Operational"],
     regions: ["Islamabad", "Lahore", "Karachi", "Peshawar", "Quetta"],
     weather_conditions: ["Normal", "Heatwave", "Flood", "Storm", "Cold Wave"],
     seasonalities: ["Summer", "Winter", "Spring", "Autumn"],
