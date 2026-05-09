@@ -2,7 +2,7 @@
 // NEXUS ERP — API Service
 // ─────────────────────────────────────────────────────────────────────────────
 
-const API_BASE_URL = "https://shakable-arbitrary-strategic.ngrok-free.dev";
+const API_BASE_URL = "https://explained-better-ward-internationally.trycloudflare.com";
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
