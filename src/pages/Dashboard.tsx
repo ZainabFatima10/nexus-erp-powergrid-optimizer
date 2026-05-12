@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Package, AlertTriangle, Clock, Bell, Loader2,
-  Zap, Network, Settings,
+  Zap, Network, Settings, Activity, ShieldCheck,
 } from "lucide-react";
 import {
   getDashboard, getNotifications,
