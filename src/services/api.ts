@@ -2,7 +2,7 @@
 // NEXUS ERP — API Service
 // ─────────────────────────────────────────────────────────────────────────────
 
-const API_BASE_URL = "https://fred-deaf-bomb-arm.trycloudflare.com";
+const API_BASE_URL = "https://adelaide-gen-peace-dose.trycloudflare.com";
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
@@ -85,6 +85,7 @@ export interface DashboardStats {
   orders: { total: number; pending: number; placed: number };
   notifications: { unread: number };
   models: { outage_accuracy: number; inventory_accuracy: number };
+  avg_outage_prob?: number;
 }
 
 export interface PredictionRequest {
@@ -156,6 +157,9 @@ export const triggerInventoryCheck = () =>
     "/api/inventory/check",
     { method: "POST" }
   );
+
+export const approveOrder = (order_id: string) =>
+  apiFetch<{ message: string }>(`/api/procurement/approve/${order_id}`, { method: "POST" });
 
 export const acceptOrder = (order_id: string, officer_name: string) =>
   apiFetch<{ message: string }>(`/api/inventory/orders/${order_id}/accept`, {

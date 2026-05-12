@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import {
   getInventoryOverview, getCurrentOrders, getPastOrders,
-  triggerInventoryCheck, acceptOrder, manualReorder,
+  triggerInventoryCheck, acceptOrder, approveOrder, manualReorder,
   InventoryItem, Order,
 } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
@@ -74,6 +74,7 @@ const TriggerBadge = ({ type }: { type: string }) => {
 const StageBadge = ({ stage }: { stage: string }) => {
   const styles: Record<string, string> = {
     "Pending Verification": "bg-muted text-muted-foreground border-border",
+    "Pending Approval": "bg-warning/10 text-warning border-warning/30",
     "Order Placed": "bg-blue-500/10 text-blue-600 border-blue-500/30",
     "Email Sent": "bg-success/10 text-success border-success/30",
   };
@@ -86,6 +87,13 @@ const StageBadge = ({ stage }: { stage: string }) => {
     </span>
   );
 };
+
+const statusRowClass = (status: string) =>
+  status === "Critical"
+    ? "bg-destructive/5 hover:bg-destructive/10"
+    : status === "Low"
+    ? "bg-warning/5 hover:bg-warning/10"
+    : "hover:bg-muted/10";
 
 const Inventory = () => {
   const { toast } = useToast();
@@ -150,6 +158,16 @@ const Inventory = () => {
       await load();
     } catch (e) {
       toast({ title: "Accept failed", description: String(e), variant: "destructive" });
+    }
+  };
+
+  const handleApprove = async (orderId: string) => {
+    try {
+      await approveOrder(orderId);
+      toast({ title: "Order approved successfully" });
+      await load();
+    } catch (e) {
+      toast({ title: "Approval failed", description: String(e), variant: "destructive" });
     }
   };
 
@@ -268,21 +286,24 @@ const Inventory = () => {
           <table className="w-full">
             <thead className="bg-muted/20">
               <tr>
-                {["Item ID", "Item Name", "Category", "Current Stock", "Min Threshold", "Status", "Days to Reorder", "Vendor"].map((h) => (
+                {["Item ID", "Item Name", "Category", "Current Stock", "Stock %", "Min Threshold", "Status", "Days to Reorder", "Vendor"].map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
               {items.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-sm text-muted-foreground">No items.</td></tr>
+                <tr><td colSpan={9} className="px-4 py-8 text-center text-sm text-muted-foreground">No items.</td></tr>
               )}
-              {items.map((i) => (
-                <tr key={i.item_id} className="hover:bg-muted/10 transition-colors">
+              {items.map((i) => {
+                const pct = i.stock_pct ?? (i.min_threshold ? Math.round((i.current_stock / i.min_threshold) * 100) : 0);
+                return (
+                <tr key={i.item_id} className={`transition-colors ${statusRowClass(i.status)}`}>
                   <td className="px-4 py-3 text-xs font-mono text-primary">{i.item_id}</td>
                   <td className="px-4 py-3 text-sm font-medium">{i.name}</td>
                   <td className="px-4 py-3"><CategoryBadge category={i.category} /></td>
                   <td className="px-4 py-3 text-sm font-mono">{i.current_stock?.toLocaleString()} {i.unit}</td>
+                  <td className="px-4 py-3 text-sm font-mono">{pct}%</td>
                   <td className="px-4 py-3 text-sm">{i.min_threshold?.toLocaleString()}</td>
                   <td className="px-4 py-3"><StatusBadge status={i.status} /></td>
                   <td className="px-4 py-3 text-sm text-center">
@@ -290,9 +311,10 @@ const Inventory = () => {
                       ? <span className="text-destructive font-semibold">Now</span>
                       : i.days_until_reorder}
                   </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{i.vendor}</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">{i.vendor_name ?? i.vendor}</td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -332,6 +354,15 @@ const Inventory = () => {
                         style={{ borderRadius: 20 }}
                       >
                         <Send size={12} /> Accept &amp; Send
+                      </button>
+                    )}
+                    {o.stage === "Pending Approval" && (
+                      <button
+                        onClick={() => handleApprove(o.order_id)}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium btn-navy"
+                        style={{ borderRadius: 20 }}
+                      >
+                        <FileCheck size={12} /> Approve
                       </button>
                     )}
                   </td>
