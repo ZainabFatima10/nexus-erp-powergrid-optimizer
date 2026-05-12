@@ -74,6 +74,7 @@ const TriggerBadge = ({ type }: { type: string }) => {
 const StageBadge = ({ stage }: { stage: string }) => {
   const styles: Record<string, string> = {
     "Pending Verification": "bg-muted text-muted-foreground border-border",
+    "Pending Approval": "bg-warning/10 text-warning border-warning/30",
     "Order Placed": "bg-blue-500/10 text-blue-600 border-blue-500/30",
     "Email Sent": "bg-success/10 text-success border-success/30",
   };
@@ -86,6 +87,13 @@ const StageBadge = ({ stage }: { stage: string }) => {
     </span>
   );
 };
+
+const statusRowClass = (status: string) =>
+  status === "Critical"
+    ? "bg-destructive/5 hover:bg-destructive/10"
+    : status === "Low"
+    ? "bg-warning/5 hover:bg-warning/10"
+    : "hover:bg-muted/10";
 
 const Inventory = () => {
   const { toast } = useToast();
