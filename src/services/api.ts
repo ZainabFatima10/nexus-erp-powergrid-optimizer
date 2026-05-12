@@ -158,6 +158,9 @@ export const triggerInventoryCheck = () =>
     { method: "POST" }
   );
 
+export const approveOrder = (order_id: string) =>
+  apiFetch<{ message: string }>(`/api/procurement/approve/${order_id}`, { method: "POST" });
+
 export const acceptOrder = (order_id: string, officer_name: string) =>
   apiFetch<{ message: string }>(`/api/inventory/orders/${order_id}/accept`, {
     method: "POST",
