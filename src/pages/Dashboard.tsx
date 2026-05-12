@@ -59,11 +59,18 @@ const Dashboard = () => {
     );
   }
 
+  const outageRisk = stats.avg_outage_prob != null
+    ? `${(stats.avg_outage_prob * (stats.avg_outage_prob > 1 ? 1 : 100)).toFixed(1)}%`
+    : "—";
+  const systemStatus = stats.inventory.critical > 0 ? "Action Required" : "Healthy";
+
   const kpis = [
     { label: "Total Inventory Items", value: stats.inventory.total, icon: Package, color: "text-primary" },
     { label: "Critical Items", value: stats.inventory.critical, icon: AlertTriangle, color: "text-destructive" },
     { label: "Pending Orders", value: stats.orders.pending, icon: Clock, color: "text-warning" },
     { label: "Unread Notifications", value: stats.notifications.unread, icon: Bell, color: "text-blue-500" },
+    { label: "Outage Risk", value: outageRisk, icon: Activity, color: "text-orange-500" },
+    { label: "System Status", value: systemStatus, icon: ShieldCheck, color: stats.inventory.critical > 0 ? "text-destructive" : "text-success" },
   ];
 
   const accuracy = [
