@@ -356,6 +356,15 @@ const Inventory = () => {
                         <Send size={12} /> Accept &amp; Send
                       </button>
                     )}
+                    {o.stage === "Pending Approval" && (
+                      <button
+                        onClick={() => handleApprove(o.order_id)}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium btn-navy"
+                        style={{ borderRadius: 20 }}
+                      >
+                        <FileCheck size={12} /> Approve
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
