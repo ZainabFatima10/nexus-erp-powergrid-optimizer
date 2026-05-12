@@ -5,7 +5,6 @@ import {
 } from "lucide-react";
 import {
   getDashboard, getNotifications,
-  DashboardStats, Notification,
 } from "@/services/api";
 
 function timeAgo(iso: string) {
