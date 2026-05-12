@@ -85,6 +85,7 @@ export interface DashboardStats {
   orders: { total: number; pending: number; placed: number };
   notifications: { unread: number };
   models: { outage_accuracy: number; inventory_accuracy: number };
+  avg_outage_prob?: number;
 }
 
 export interface PredictionRequest {
