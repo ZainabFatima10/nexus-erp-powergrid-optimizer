@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import {
   getInventoryOverview, getCurrentOrders, getPastOrders,
-  triggerInventoryCheck, acceptOrder, manualReorder,
+  triggerInventoryCheck, acceptOrder, approveOrder, manualReorder,
   InventoryItem, Order,
 } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
