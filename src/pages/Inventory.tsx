@@ -286,21 +286,24 @@ const Inventory = () => {
           <table className="w-full">
             <thead className="bg-muted/20">
               <tr>
-                {["Item ID", "Item Name", "Category", "Current Stock", "Min Threshold", "Status", "Days to Reorder", "Vendor"].map((h) => (
+                {["Item ID", "Item Name", "Category", "Current Stock", "Stock %", "Min Threshold", "Status", "Days to Reorder", "Vendor"].map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
               {items.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-sm text-muted-foreground">No items.</td></tr>
+                <tr><td colSpan={9} className="px-4 py-8 text-center text-sm text-muted-foreground">No items.</td></tr>
               )}
-              {items.map((i) => (
-                <tr key={i.item_id} className="hover:bg-muted/10 transition-colors">
+              {items.map((i) => {
+                const pct = i.stock_pct ?? (i.min_threshold ? Math.round((i.current_stock / i.min_threshold) * 100) : 0);
+                return (
+                <tr key={i.item_id} className={`transition-colors ${statusRowClass(i.status)}`}>
                   <td className="px-4 py-3 text-xs font-mono text-primary">{i.item_id}</td>
                   <td className="px-4 py-3 text-sm font-medium">{i.name}</td>
                   <td className="px-4 py-3"><CategoryBadge category={i.category} /></td>
                   <td className="px-4 py-3 text-sm font-mono">{i.current_stock?.toLocaleString()} {i.unit}</td>
+                  <td className="px-4 py-3 text-sm font-mono">{pct}%</td>
                   <td className="px-4 py-3 text-sm">{i.min_threshold?.toLocaleString()}</td>
                   <td className="px-4 py-3"><StatusBadge status={i.status} /></td>
                   <td className="px-4 py-3 text-sm text-center">
@@ -308,9 +311,10 @@ const Inventory = () => {
                       ? <span className="text-destructive font-semibold">Now</span>
                       : i.days_until_reorder}
                   </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{i.vendor}</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">{i.vendor_name ?? i.vendor}</td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
