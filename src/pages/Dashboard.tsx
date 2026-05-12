@@ -5,7 +5,6 @@ import {
 } from "lucide-react";
 import {
   getDashboard, getNotifications,
-  DashboardStats, Notification,
 } from "@/services/api";
 
 function timeAgo(iso: string) {
@@ -27,18 +26,33 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 const Dashboard = () => {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [notes, setNotes] = useState<Notification[]>([]);
+  // Use 'any' here because backend response shape evolves; we normalize below.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [stats, setStats] = useState<any | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [notes, setNotes] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([getDashboard(), getNotifications()])
+    Promise.all([
+      getDashboard().catch((e) => { console.error("dashboard", e); return null; }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      getNotifications().catch((e) => { console.error("notifications", e); return null as any; }),
+    ])
       .then(([d, n]) => {
         setStats(d);
-        setNotes(n.notifications.slice(0, 5));
+        if (n) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const anyN = n as any;
+          const list = anyN.notifications ?? anyN.recent_notifications ?? [];
+          setNotes(list.slice(0, 5));
+          setUnreadCount(anyN.unread_count ?? anyN.count ?? 0);
+        }
+        if (!d) setError("Backend returned no dashboard data");
       })
-      .catch((e) => setError(String(e.message || e)))
+      .catch((e) => setError(String(e?.message || e)))
       .finally(() => setLoading(false));
   }, []);
 
@@ -50,7 +64,7 @@ const Dashboard = () => {
     );
   }
 
-  if (error || !stats) {
+  if (error && !stats) {
     return (
       <div className="glass-card p-6 border-destructive/30 bg-destructive/5 text-center" style={{ borderRadius: 20 }}>
         <p className="text-destructive font-semibold">Failed to load dashboard</p>
@@ -59,23 +73,36 @@ const Dashboard = () => {
     );
   }
 
-  const outageRisk = stats.avg_outage_prob != null
-    ? `${(stats.avg_outage_prob * (stats.avg_outage_prob > 1 ? 1 : 100)).toFixed(1)}%`
+  // Normalize across legacy + new backend shapes
+  const inv = stats?.inventory ?? {};
+  const totalInv = inv.total ?? inv.total_items ?? 0;
+  const okInv = inv.ok ?? 0;
+  const lowInv = inv.low ?? 0;
+  const criticalInv = inv.critical ?? 0;
+  const byCategory = inv.by_category ?? {};
+
+  const pendingOrders = stats?.orders?.pending ?? stats?.active_orders ?? 0;
+  const unread = stats?.notifications?.unread ?? unreadCount;
+
+  const rawProb = stats?.avg_outage_prob ?? stats?.forecast?.avg_outage_prob;
+  const outageRisk = rawProb != null
+    ? `${(rawProb > 1 ? rawProb : rawProb * 100).toFixed(1)}%`
     : "—";
-  const systemStatus = stats.inventory.critical > 0 ? "Action Required" : "Healthy";
+  const systemStatus = stats?.system_status ?? (criticalInv > 0 ? "Action Required" : "Healthy");
+  const isActionRequired = systemStatus.toLowerCase().includes("action");
 
   const kpis = [
-    { label: "Total Inventory Items", value: stats.inventory.total, icon: Package, color: "text-primary" },
-    { label: "Critical Items", value: stats.inventory.critical, icon: AlertTriangle, color: "text-destructive" },
-    { label: "Pending Orders", value: stats.orders.pending, icon: Clock, color: "text-warning" },
-    { label: "Unread Notifications", value: stats.notifications.unread, icon: Bell, color: "text-blue-500" },
+    { label: "Total Inventory Items", value: totalInv, icon: Package, color: "text-primary" },
+    { label: "Critical Items", value: criticalInv, icon: AlertTriangle, color: "text-destructive" },
+    { label: "Pending Orders", value: pendingOrders, icon: Clock, color: "text-warning" },
+    { label: "Unread Notifications", value: unread, icon: Bell, color: "text-blue-500" },
     { label: "Outage Risk", value: outageRisk, icon: Activity, color: "text-orange-500" },
-    { label: "System Status", value: systemStatus, icon: ShieldCheck, color: stats.inventory.critical > 0 ? "text-destructive" : "text-success" },
+    { label: "System Status", value: systemStatus, icon: ShieldCheck, color: isActionRequired ? "text-destructive" : "text-success" },
   ];
 
   const accuracy = [
-    { label: "Outage Prediction Accuracy", value: stats.models?.outage_accuracy ?? 89.8 },
-    { label: "Inventory Demand Accuracy", value: stats.models?.inventory_accuracy ?? 94.9 },
+    { label: "Outage Prediction Accuracy", value: stats?.models?.outage_accuracy ?? 89.8 },
+    { label: "Inventory Demand Accuracy", value: stats?.models?.inventory_accuracy ?? 94.9 },
   ];
 
   const cats = [
@@ -125,7 +152,7 @@ const Dashboard = () => {
       {/* ROW 3 — Category Breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {cats.map((c) => {
-          const data = stats.inventory.by_category?.[c.key] ?? { total: 0, ok: 0, low: 0, critical: 0 };
+          const data = byCategory[c.key] ?? { total: 0, ok: 0, low: 0, critical: 0 };
           return (
             <div
               key={c.key}
