@@ -153,7 +153,7 @@ const Dashboard = () => {
       {/* ROW 3 — Category Breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {cats.map((c) => {
-          const data = stats.inventory.by_category?.[c.key] ?? { total: 0, ok: 0, low: 0, critical: 0 };
+          const data = byCategory[c.key] ?? { total: 0, ok: 0, low: 0, critical: 0 };
           return (
             <div
               key={c.key}
