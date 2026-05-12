@@ -98,7 +98,7 @@ const Dashboard = () => {
             <div className="flex items-center justify-between mb-3">
               <k.icon size={22} className={k.color} />
             </div>
-            <p className="text-2xl font-heading font-bold">{k.value?.toLocaleString() ?? "—"}</p>
+            <p className="text-2xl font-heading font-bold">{typeof k.value === "number" ? k.value.toLocaleString() : (k.value ?? "—")}</p>
             <p className="text-xs text-muted-foreground mt-1">{k.label}</p>
           </div>
         ))}
