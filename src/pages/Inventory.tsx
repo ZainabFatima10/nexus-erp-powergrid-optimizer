@@ -161,6 +161,16 @@ const Inventory = () => {
     }
   };
 
+  const handleApprove = async (orderId: string) => {
+    try {
+      await approveOrder(orderId);
+      toast({ title: "Order approved successfully" });
+      await load();
+    } catch (e) {
+      toast({ title: "Approval failed", description: String(e), variant: "destructive" });
+    }
+  };
+
   const handleManualReorder = async () => {
     if (!manualItem) return;
     setPlacing(true);
