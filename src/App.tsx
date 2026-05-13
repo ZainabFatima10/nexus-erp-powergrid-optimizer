@@ -11,6 +11,7 @@ import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
+import Procurement from "./pages/Procurement";
 import InventoryPrediction from "./pages/InventoryPrediction";
 import OutagePrediction from "./pages/OutagePrediction";
 import Complaints from "./pages/Complaints";
