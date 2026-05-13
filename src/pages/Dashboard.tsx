@@ -213,6 +213,39 @@ const Dashboard = () => {
         })}
       </div>
 
+      {/* Contracts Awaiting Signature */}
+      <div className="glass-card p-5" style={{ borderRadius: 20 }}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-heading font-semibold">Contracts Awaiting Signature</h2>
+          <FileSignature size={18} className="text-muted-foreground" />
+        </div>
+        {pendingContracts.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-6">No contracts awaiting signature.</p>
+        ) : (
+          <div className="space-y-2">
+            {pendingContracts.map((o) => (
+              <div
+                key={o.order_id}
+                className="flex items-center gap-3 p-3 border border-border/50 hover:bg-muted/20 transition-colors"
+                style={{ borderRadius: 20 }}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{o.item_name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{o.vendor}</p>
+                </div>
+                <button
+                  onClick={() => handleSign(o.order_id)}
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium btn-navy"
+                  style={{ borderRadius: 20 }}
+                >
+                  <FileSignature size={12} /> Sign
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* ROW 4 — Recent Notifications */}
       <div className="glass-card p-5" style={{ borderRadius: 20 }}>
         <div className="flex items-center justify-between mb-4">
