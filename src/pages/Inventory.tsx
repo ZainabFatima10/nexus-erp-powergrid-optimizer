@@ -411,7 +411,7 @@ const Inventory = () => {
           <div className="flex items-start gap-2 glass-card p-3 border-accent-cyan" style={{ borderRadius: 20 }}>
             <Info size={16} className="text-primary mt-0.5 flex-shrink-0" />
             <p className="text-xs text-muted-foreground">
-              Items below threshold flagged for reorder. Critical items auto-trigger VEMA reorders.
+              30% VEMA Automatic Reorder threshold active.
             </p>
           </div>
           <div className="flex justify-end">
