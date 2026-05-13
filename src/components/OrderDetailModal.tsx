@@ -117,6 +117,7 @@ const OrderDetailModal = ({ order: initialOrder, onClose, onUpdate }: Props) => 
     { key: "contract",  label: "Contract",  icon: FileText },
     { key: "tracking",  label: "Tracking",  icon: Truck },
     { key: "checkin",   label: "Check-In",  icon: ShieldCheck },
+    ...(order.contract ? [{ key: "smartcontract" as ModalTab, label: "Smart Contract", icon: ShieldCheck }] : []),
   ];
 
   return (
