@@ -2,10 +2,10 @@
 // NEXUS ERP — API Service
 // ─────────────────────────────────────────────────────────────────────────────
 
-const API_BASE_URL = "https://adelaide-gen-peace-dose.trycloudflare.com";
+import { API_BASE } from "@/lib/api";
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await fetch(`${API_BASE}${path}`, {
     headers: { "Content-Type": "application/json" },
     ...options,
   });
