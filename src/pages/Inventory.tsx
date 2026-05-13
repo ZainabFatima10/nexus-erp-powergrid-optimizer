@@ -532,6 +532,69 @@ const Inventory = () => {
           </div>
         </div>
       )}
+
+      {/* ITEM DETAIL — SUPPLY CHAIN HISTORY */}
+      {detailItem && (
+        <div
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setDetailItem(null)}
+        >
+          <div
+            className="glass-card p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto glow-cyan animate-slide-up"
+            style={{ borderRadius: 20 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="font-heading font-bold text-lg">{detailItem.name}</h3>
+                <p className="text-xs text-muted-foreground font-mono">{detailItem.item_id}</p>
+              </div>
+              <button onClick={() => setDetailItem(null)} className="text-muted-foreground hover:text-foreground">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="flex gap-1 bg-muted/30 p-1 w-fit mb-4" style={{ borderRadius: 20 }}>
+              <span className="px-4 py-1.5 text-xs font-medium bg-primary/10 text-primary" style={{ borderRadius: 20 }}>
+                Supply Chain History
+              </span>
+            </div>
+
+            {historyLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="animate-spin text-primary" size={24} />
+              </div>
+            ) : historyOrders.length === 0 ? (
+              <div className="text-center py-8 text-sm text-muted-foreground">No supply chain history</div>
+            ) : (
+              <div className="glass-card overflow-hidden" style={{ borderRadius: 20 }}>
+                <table className="w-full">
+                  <thead className="bg-muted/20">
+                    <tr>
+                      {["Date", "Order ID", "Vendor", "Quantity", "Stage"].map((h) => (
+                        <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    {historyOrders.map((o) => (
+                      <tr key={o.order_id} className="hover:bg-muted/10">
+                        <td className="px-4 py-3 text-xs">
+                          {o.created_at ? new Date(o.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
+                        </td>
+                        <td className="px-4 py-3 text-xs font-mono text-primary">{o.order_id}</td>
+                        <td className="px-4 py-3 text-xs">{o.vendor}</td>
+                        <td className="px-4 py-3 text-xs">{o.quantity?.toLocaleString()} {o.unit}</td>
+                        <td className="px-4 py-3"><StageBadge stage={o.stage} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
