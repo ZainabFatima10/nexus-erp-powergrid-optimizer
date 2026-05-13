@@ -427,7 +427,7 @@ const Inventory = () => {
             <table className="w-full">
               <thead className="bg-muted/20">
                 <tr>
-                  {["Item", "Category", "Current Stock", "Min Threshold", "Critical At (20%)", "Status", "Trigger Type"].map((h) => (
+                  {["Item", "Category", "Current Stock", "Min Threshold", "Critical At (30%)", "Status", "Trigger Type"].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -437,12 +437,12 @@ const Inventory = () => {
                   <tr><td colSpan={7} className="px-4 py-8 text-center text-sm text-muted-foreground">All inventory levels are healthy.</td></tr>
                 )}
                 {lowOrCritical.map((i) => (
-                  <tr key={i.item_id} className="hover:bg-muted/10 transition-colors">
+                  <tr key={i.item_id} className="hover:bg-muted/10 transition-colors" title="30% VEMA Automatic Reorder threshold active.">
                     <td className="px-4 py-3 text-sm font-medium">{i.name}</td>
                     <td className="px-4 py-3"><CategoryBadge category={i.category} /></td>
                     <td className="px-4 py-3 text-sm text-destructive font-semibold">{i.current_stock?.toLocaleString()} {i.unit}</td>
                     <td className="px-4 py-3 text-sm">{i.min_threshold?.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-sm">{i.critical_threshold?.toLocaleString() ?? Math.round((i.min_threshold || 0) * 0.2)}</td>
+                    <td className="px-4 py-3 text-sm">{i.critical_threshold?.toLocaleString() ?? Math.round((i.min_threshold || 0) * 0.3)}</td>
                     <td className="px-4 py-3"><StatusBadge status={i.status} /></td>
                     <td className="px-4 py-3">
                       <TriggerBadge type={i.status === "Critical" ? "VEMA-Triggered" : "Auto-Generated"} />
