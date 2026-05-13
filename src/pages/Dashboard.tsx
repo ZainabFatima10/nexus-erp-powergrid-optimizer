@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Package, AlertTriangle, Clock, Bell, Loader2,
-  Zap, Network, Settings, Activity, ShieldCheck,
+  Zap, Network, Settings, Activity, ShieldCheck, FileSignature,
 } from "lucide-react";
 import {
-  getDashboard, getNotifications,
+  getDashboard, getNotifications, getCurrentOrders, approveContract,
+  Order,
 } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -26,35 +28,48 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 const Dashboard = () => {
+  const { toast } = useToast();
   // Use 'any' here because backend response shape evolves; we normalize below.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [stats, setStats] = useState<any | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [notes, setNotes] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pendingContracts, setPendingContracts] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    Promise.all([
+  const loadAll = useCallback(async () => {
+    const [d, n, cur] = await Promise.all([
       getDashboard().catch((e) => { console.error("dashboard", e); return null; }),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       getNotifications().catch((e) => { console.error("notifications", e); return null as any; }),
-    ])
-      .then(([d, n]) => {
-        setStats(d);
-        if (n) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const anyN = n as any;
-          const list = anyN.notifications ?? anyN.recent_notifications ?? [];
-          setNotes(list.slice(0, 5));
-          setUnreadCount(anyN.unread_count ?? anyN.count ?? 0);
-        }
-        if (!d) setError("Backend returned no dashboard data");
-      })
-      .catch((e) => setError(String(e?.message || e)))
-      .finally(() => setLoading(false));
+      getCurrentOrders().catch((e) => { console.error("current orders", e); return { count: 0, orders: [] as Order[] }; }),
+    ]);
+    setStats(d);
+    if (n) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyN = n as any;
+      const list = anyN.notifications ?? anyN.recent_notifications ?? [];
+      setNotes(list.slice(0, 5));
+      setUnreadCount(anyN.unread_count ?? anyN.count ?? 0);
+    }
+    setPendingContracts((cur.orders || []).filter((o) => o.stage === "Pending Verification"));
+    if (!d) setError("Backend returned no dashboard data");
+    setLoading(false);
   }, []);
+
+  useEffect(() => { loadAll(); }, [loadAll]);
+
+  const handleSign = async (orderId: string) => {
+    try {
+      await approveContract(orderId);
+      toast({ title: "Contract approved and signed to ledger." });
+      loadAll();
+    } catch (e) {
+      toast({ title: "Sign failed", description: String(e), variant: "destructive" });
+    }
+  };
 
   if (loading) {
     return (
@@ -76,10 +91,20 @@ const Dashboard = () => {
   // Normalize across legacy + new backend shapes
   const inv = stats?.inventory ?? {};
   const totalInv = inv.total ?? inv.total_items ?? 0;
-  const okInv = inv.ok ?? 0;
-  const lowInv = inv.low ?? 0;
   const criticalInv = inv.critical ?? 0;
-  const byCategory = inv.by_category ?? {};
+
+  // Build category breakdown from new `category_stats` array, falling back to legacy `by_category`.
+  const categoryStatsArr: Array<{ category: string; ok: number; low: number; critical: number }> =
+    Array.isArray(inv.category_stats) ? inv.category_stats : [];
+  const byCategory: Record<string, { ok: number; low: number; critical: number; total: number }> = {};
+  categoryStatsArr.forEach((c) => {
+    byCategory[c.category] = { ok: c.ok, low: c.low, critical: c.critical, total: c.ok + c.low + c.critical };
+  });
+  if (categoryStatsArr.length === 0 && inv.by_category) {
+    Object.entries(inv.by_category as Record<string, { ok: number; low: number; critical: number; total?: number }>).forEach(([k, v]) => {
+      byCategory[k] = { ok: v.ok, low: v.low, critical: v.critical, total: v.total ?? v.ok + v.low + v.critical };
+    });
+  }
 
   const pendingOrders = stats?.orders?.pending ?? stats?.active_orders ?? 0;
   const unread = stats?.notifications?.unread ?? unreadCount;
@@ -88,8 +113,12 @@ const Dashboard = () => {
   const outageRisk = rawProb != null
     ? `${(rawProb > 1 ? rawProb : rawProb * 100).toFixed(1)}%`
     : "—";
-  const systemStatus = stats?.system_status ?? (criticalInv > 0 ? "Action Required" : "Healthy");
+  const systemStatus: string = stats?.system_status ?? (criticalInv > 0 ? "Action Required" : "Healthy");
   const isActionRequired = systemStatus.toLowerCase().includes("action");
+  const contractAccuracyRaw = stats?.contract_accuracy;
+  const contractAccuracy = contractAccuracyRaw != null
+    ? `${(contractAccuracyRaw > 1 ? contractAccuracyRaw : contractAccuracyRaw * 100).toFixed(1)}%`
+    : "—";
 
   const kpis = [
     { label: "Total Inventory Items", value: totalInv, icon: Package, color: "text-primary" },
@@ -98,6 +127,7 @@ const Dashboard = () => {
     { label: "Unread Notifications", value: unread, icon: Bell, color: "text-blue-500" },
     { label: "Outage Risk", value: outageRisk, icon: Activity, color: "text-orange-500" },
     { label: "System Status", value: systemStatus, icon: ShieldCheck, color: isActionRequired ? "text-destructive" : "text-success" },
+    { label: "Contract Accuracy", value: contractAccuracy, icon: FileSignature, color: "text-success" },
   ];
 
   const accuracy = [
@@ -181,6 +211,39 @@ const Dashboard = () => {
             </div>
           );
         })}
+      </div>
+
+      {/* Contracts Awaiting Signature */}
+      <div className="glass-card p-5" style={{ borderRadius: 20 }}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-heading font-semibold">Contracts Awaiting Signature</h2>
+          <FileSignature size={18} className="text-muted-foreground" />
+        </div>
+        {pendingContracts.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-6">No contracts awaiting signature.</p>
+        ) : (
+          <div className="space-y-2">
+            {pendingContracts.map((o) => (
+              <div
+                key={o.order_id}
+                className="flex items-center gap-3 p-3 border border-border/50 hover:bg-muted/20 transition-colors"
+                style={{ borderRadius: 20 }}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{o.item_name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{o.vendor}</p>
+                </div>
+                <button
+                  onClick={() => handleSign(o.order_id)}
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium btn-navy"
+                  style={{ borderRadius: 20 }}
+                >
+                  <FileSignature size={12} /> Sign
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ROW 4 — Recent Notifications */}

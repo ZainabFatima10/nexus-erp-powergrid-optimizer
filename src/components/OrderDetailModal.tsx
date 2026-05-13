@@ -8,6 +8,7 @@ import {
   getOrder, signContract, submitDeliveryCheckin,
   ProcurementOrder, DeliveryCheckin, ContractAuditEntry,
 } from "@/services/api";
+import ContractPanel from "@/components/ContractPanel";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -17,7 +18,7 @@ interface Props {
   onUpdate: () => void;
 }
 
-type ModalTab = "overview" | "contract" | "tracking" | "checkin";
+type ModalTab = "overview" | "contract" | "tracking" | "checkin" | "smartcontract";
 
 const STAGE_STEPS = [
   "Pending Verification",
@@ -116,6 +117,7 @@ const OrderDetailModal = ({ order: initialOrder, onClose, onUpdate }: Props) => 
     { key: "contract",  label: "Contract",  icon: FileText },
     { key: "tracking",  label: "Tracking",  icon: Truck },
     { key: "checkin",   label: "Check-In",  icon: ShieldCheck },
+    ...(order.contract ? [{ key: "smartcontract" as ModalTab, label: "Smart Contract", icon: ShieldCheck }] : []),
   ];
 
   return (
@@ -332,6 +334,21 @@ const OrderDetailModal = ({ order: initialOrder, onClose, onUpdate }: Props) => 
                 </>
               )}
             </div>
+          )}
+
+          {/* ── SMART CONTRACT ── */}
+          {!loading && tab === "smartcontract" && order.contract && (
+            <ContractPanel
+              contract={order.contract}
+              orderId={order.id}
+              onUpdated={async () => {
+                try {
+                  const detail = await getOrder(order.id);
+                  setOrder(detail.order);
+                  onUpdate();
+                } catch { /* noop */ }
+              }}
+            />
           )}
 
           {/* ── CHECK-IN FORM ── */}

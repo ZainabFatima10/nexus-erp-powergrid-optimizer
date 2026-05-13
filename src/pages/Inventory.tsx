@@ -113,6 +113,21 @@ const Inventory = () => {
   const [manualQty, setManualQty] = useState(100);
   const [placing, setPlacing] = useState(false);
 
+  const [detailItem, setDetailItem] = useState<InventoryItem | null>(null);
+  const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const openDetail = useCallback(async (it: InventoryItem) => {
+    setDetailItem(it);
+    setHistoryLoading(true);
+    try {
+      const res = await getPastOrders(undefined, it.item_id);
+      setHistoryOrders(res.orders || []);
+    } catch {
+      setHistoryOrders([]);
+    } finally { setHistoryLoading(false); }
+  }, []);
+
   const catParam = category === "All" ? undefined : category;
 
   const load = useCallback(async () => {
@@ -176,7 +191,7 @@ const Inventory = () => {
     setPlacing(true);
     try {
       await manualReorder(manualItem, manualQty);
-      toast({ title: "Manual reorder placed" });
+      toast({ title: "Reorder placed — pending admin contract approval." });
       setShowManualModal(false);
       await load();
     } catch (e) {
@@ -298,7 +313,7 @@ const Inventory = () => {
               {items.map((i) => {
                 const pct = i.stock_pct ?? (i.min_threshold ? Math.round((i.current_stock / i.min_threshold) * 100) : 0);
                 return (
-                <tr key={i.item_id} className={`transition-colors ${statusRowClass(i.status)}`}>
+                <tr key={i.item_id} onClick={() => openDetail(i)} className={`transition-colors cursor-pointer ${statusRowClass(i.status)}`}>
                   <td className="px-4 py-3 text-xs font-mono text-primary">{i.item_id}</td>
                   <td className="px-4 py-3 text-sm font-medium">{i.name}</td>
                   <td className="px-4 py-3"><CategoryBadge category={i.category} /></td>
@@ -411,7 +426,7 @@ const Inventory = () => {
           <div className="flex items-start gap-2 glass-card p-3 border-accent-cyan" style={{ borderRadius: 20 }}>
             <Info size={16} className="text-primary mt-0.5 flex-shrink-0" />
             <p className="text-xs text-muted-foreground">
-              Items below threshold flagged for reorder. Critical items auto-trigger VEMA reorders.
+              30% VEMA Automatic Reorder threshold active.
             </p>
           </div>
           <div className="flex justify-end">
@@ -427,7 +442,7 @@ const Inventory = () => {
             <table className="w-full">
               <thead className="bg-muted/20">
                 <tr>
-                  {["Item", "Category", "Current Stock", "Min Threshold", "Critical At (20%)", "Status", "Trigger Type"].map((h) => (
+                  {["Item", "Category", "Current Stock", "Min Threshold", "Critical At (30%)", "Status", "Trigger Type"].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -437,12 +452,12 @@ const Inventory = () => {
                   <tr><td colSpan={7} className="px-4 py-8 text-center text-sm text-muted-foreground">All inventory levels are healthy.</td></tr>
                 )}
                 {lowOrCritical.map((i) => (
-                  <tr key={i.item_id} className="hover:bg-muted/10 transition-colors">
+                  <tr key={i.item_id} className="hover:bg-muted/10 transition-colors" title="30% VEMA Automatic Reorder threshold active.">
                     <td className="px-4 py-3 text-sm font-medium">{i.name}</td>
                     <td className="px-4 py-3"><CategoryBadge category={i.category} /></td>
                     <td className="px-4 py-3 text-sm text-destructive font-semibold">{i.current_stock?.toLocaleString()} {i.unit}</td>
                     <td className="px-4 py-3 text-sm">{i.min_threshold?.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-sm">{i.critical_threshold?.toLocaleString() ?? Math.round((i.min_threshold || 0) * 0.2)}</td>
+                    <td className="px-4 py-3 text-sm">{i.critical_threshold?.toLocaleString() ?? Math.round((i.min_threshold || 0) * 0.3)}</td>
                     <td className="px-4 py-3"><StatusBadge status={i.status} /></td>
                     <td className="px-4 py-3">
                       <TriggerBadge type={i.status === "Critical" ? "VEMA-Triggered" : "Auto-Generated"} />
@@ -514,6 +529,69 @@ const Inventory = () => {
                 Confirm Reorder
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ITEM DETAIL — SUPPLY CHAIN HISTORY */}
+      {detailItem && (
+        <div
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setDetailItem(null)}
+        >
+          <div
+            className="glass-card p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto glow-cyan animate-slide-up"
+            style={{ borderRadius: 20 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="font-heading font-bold text-lg">{detailItem.name}</h3>
+                <p className="text-xs text-muted-foreground font-mono">{detailItem.item_id}</p>
+              </div>
+              <button onClick={() => setDetailItem(null)} className="text-muted-foreground hover:text-foreground">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="flex gap-1 bg-muted/30 p-1 w-fit mb-4" style={{ borderRadius: 20 }}>
+              <span className="px-4 py-1.5 text-xs font-medium bg-primary/10 text-primary" style={{ borderRadius: 20 }}>
+                Supply Chain History
+              </span>
+            </div>
+
+            {historyLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="animate-spin text-primary" size={24} />
+              </div>
+            ) : historyOrders.length === 0 ? (
+              <div className="text-center py-8 text-sm text-muted-foreground">No supply chain history</div>
+            ) : (
+              <div className="glass-card overflow-hidden" style={{ borderRadius: 20 }}>
+                <table className="w-full">
+                  <thead className="bg-muted/20">
+                    <tr>
+                      {["Date", "Order ID", "Vendor", "Quantity", "Stage"].map((h) => (
+                        <th key={h} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    {historyOrders.map((o) => (
+                      <tr key={o.order_id} className="hover:bg-muted/10">
+                        <td className="px-4 py-3 text-xs">
+                          {o.created_at ? new Date(o.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
+                        </td>
+                        <td className="px-4 py-3 text-xs font-mono text-primary">{o.order_id}</td>
+                        <td className="px-4 py-3 text-xs">{o.vendor}</td>
+                        <td className="px-4 py-3 text-xs">{o.quantity?.toLocaleString()} {o.unit}</td>
+                        <td className="px-4 py-3"><StageBadge stage={o.stage} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}

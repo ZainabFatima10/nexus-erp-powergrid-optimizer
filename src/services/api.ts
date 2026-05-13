@@ -2,10 +2,10 @@
 // NEXUS ERP — API Service
 // ─────────────────────────────────────────────────────────────────────────────
 
-const API_BASE_URL = "https://adelaide-gen-peace-dose.trycloudflare.com";
+import { API_BASE } from "@/lib/api";
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await fetch(`${API_BASE}${path}`, {
     headers: { "Content-Type": "application/json" },
     ...options,
   });
@@ -40,6 +40,26 @@ export interface InventoryItem {
   stock_pct?: number;
 }
 
+export interface ContractTransaction {
+  date: string;
+  type: "Advance Payment" | "Final Settlement";
+  amount: number;
+  transaction_id: string;
+}
+
+export interface ContractObject {
+  id: string;
+  ledger_id: string;
+  fabric_hash: string;
+  block_number: number;
+  status: "Pending" | "Signed" | "Executed";
+  advance_settled: boolean;
+  advance_tx_id: string | null;
+  final_settled: boolean;
+  final_tx_id: string | null;
+  transactions: ContractTransaction[];
+}
+
 export interface Order {
   order_id: string;
   item_id: string;
@@ -50,7 +70,10 @@ export interface Order {
   vendor: string;
   vendor_email: string;
   trigger_type: string;
-  stage: string;
+  stage: "Pending Verification" | "Advance Paid" | "Signed" | "Delivered" | "Final Payment Released" | string;
+  status: "Pending" | "Pending Verification" | "Signed" | "Executed" | "Delivered" | string;
+  execution_hash: string | null;
+  contract: ContractObject | null;
   contract_status: string;
   email_sent: boolean;
   created_at: string;
@@ -147,10 +170,38 @@ export const getCurrentOrders = (category?: string) =>
     `/api/inventory/orders/current${category ? `?category=${category}` : ""}`
   );
 
-export const getPastOrders = (category?: string) =>
-  apiFetch<{ count: number; orders: Order[] }>(
-    `/api/inventory/orders/history${category ? `?category=${category}` : ""}`
+export const getPastOrders = (category?: string, item_id?: string) => {
+  const params = new URLSearchParams();
+  if (category) params.set("category", category);
+  if (item_id) params.set("item_id", item_id);
+  const qs = params.toString();
+  return apiFetch<{ count: number; orders: Order[] }>(
+    `/api/inventory/orders/history${qs ? `?${qs}` : ""}`
   );
+};
+
+export const approveContract = (id: string) =>
+  apiFetch<{ message: string }>(`/api/contracts/${id}/approve`, { method: "POST" });
+
+export const rejectContract = (id: string) =>
+  apiFetch<{ message: string }>(`/api/contracts/${id}/reject`, { method: "POST" });
+
+export const procurementCheckin = (order_id: string) =>
+  apiFetch<{ message: string }>(`/api/procurement/checkin`, {
+    method: "POST",
+    body: JSON.stringify({ order_id }),
+  });
+
+export const getPendingContracts = () =>
+  apiFetch<{ count: number; contracts: Array<{
+    id: string;
+    order_id: string;
+    item_name: string;
+    vendor: string;
+    quantity: number;
+    unit: string;
+    total_value: number;
+  }> }>(`/api/contracts/pending`).catch(() => ({ count: 0, contracts: [] }));
 
 export const triggerInventoryCheck = () =>
   apiFetch<{ message: string; order_ids: string[] }>(
@@ -258,6 +309,8 @@ export interface ProcurementOrder {
   actual_delivery: string | null; delivery_confirmed: boolean;
   delivery_condition: string | null; tracking_events: TrackingEvent[];
   smart_contract_data: Record<string, unknown> | null;
+  contract?: ContractObject | null;
+  execution_hash?: string | null;
   created_at: string; updated_at: string;
 }
 export interface OrderDetailResponse {
