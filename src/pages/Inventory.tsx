@@ -176,7 +176,7 @@ const Inventory = () => {
     setPlacing(true);
     try {
       await manualReorder(manualItem, manualQty);
-      toast({ title: "Manual reorder placed" });
+      toast({ title: "Reorder placed — pending admin contract approval." });
       setShowManualModal(false);
       await load();
     } catch (e) {
