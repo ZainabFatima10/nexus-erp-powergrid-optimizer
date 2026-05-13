@@ -40,6 +40,26 @@ export interface InventoryItem {
   stock_pct?: number;
 }
 
+export interface ContractTransaction {
+  date: string;
+  type: "Advance Payment" | "Final Settlement";
+  amount: number;
+  transaction_id: string;
+}
+
+export interface ContractObject {
+  id: string;
+  ledger_id: string;
+  fabric_hash: string;
+  block_number: number;
+  status: "Pending" | "Signed" | "Executed";
+  advance_settled: boolean;
+  advance_tx_id: string | null;
+  final_settled: boolean;
+  final_tx_id: string | null;
+  transactions: ContractTransaction[];
+}
+
 export interface Order {
   order_id: string;
   item_id: string;
@@ -50,7 +70,10 @@ export interface Order {
   vendor: string;
   vendor_email: string;
   trigger_type: string;
-  stage: string;
+  stage: "Pending Verification" | "Advance Paid" | "Signed" | "Delivered" | "Final Payment Released" | string;
+  status: "Pending" | "Pending Verification" | "Signed" | "Executed" | "Delivered" | string;
+  execution_hash: string | null;
+  contract: ContractObject | null;
   contract_status: string;
   email_sent: boolean;
   created_at: string;
