@@ -309,6 +309,8 @@ export interface ProcurementOrder {
   actual_delivery: string | null; delivery_confirmed: boolean;
   delivery_condition: string | null; tracking_events: TrackingEvent[];
   smart_contract_data: Record<string, unknown> | null;
+  contract?: ContractObject | null;
+  execution_hash?: string | null;
   created_at: string; updated_at: string;
 }
 export interface OrderDetailResponse {
