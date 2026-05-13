@@ -313,7 +313,7 @@ const Inventory = () => {
               {items.map((i) => {
                 const pct = i.stock_pct ?? (i.min_threshold ? Math.round((i.current_stock / i.min_threshold) * 100) : 0);
                 return (
-                <tr key={i.item_id} className={`transition-colors ${statusRowClass(i.status)}`}>
+                <tr key={i.item_id} onClick={() => openDetail(i)} className={`transition-colors cursor-pointer ${statusRowClass(i.status)}`}>
                   <td className="px-4 py-3 text-xs font-mono text-primary">{i.item_id}</td>
                   <td className="px-4 py-3 text-sm font-medium">{i.name}</td>
                   <td className="px-4 py-3"><CategoryBadge category={i.category} /></td>
