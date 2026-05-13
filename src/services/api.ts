@@ -170,10 +170,38 @@ export const getCurrentOrders = (category?: string) =>
     `/api/inventory/orders/current${category ? `?category=${category}` : ""}`
   );
 
-export const getPastOrders = (category?: string) =>
-  apiFetch<{ count: number; orders: Order[] }>(
-    `/api/inventory/orders/history${category ? `?category=${category}` : ""}`
+export const getPastOrders = (category?: string, item_id?: string) => {
+  const params = new URLSearchParams();
+  if (category) params.set("category", category);
+  if (item_id) params.set("item_id", item_id);
+  const qs = params.toString();
+  return apiFetch<{ count: number; orders: Order[] }>(
+    `/api/inventory/orders/history${qs ? `?${qs}` : ""}`
   );
+};
+
+export const approveContract = (id: string) =>
+  apiFetch<{ message: string }>(`/api/contracts/${id}/approve`, { method: "POST" });
+
+export const rejectContract = (id: string) =>
+  apiFetch<{ message: string }>(`/api/contracts/${id}/reject`, { method: "POST" });
+
+export const procurementCheckin = (order_id: string) =>
+  apiFetch<{ message: string }>(`/api/procurement/checkin`, {
+    method: "POST",
+    body: JSON.stringify({ order_id }),
+  });
+
+export const getPendingContracts = () =>
+  apiFetch<{ count: number; contracts: Array<{
+    id: string;
+    order_id: string;
+    item_name: string;
+    vendor: string;
+    quantity: number;
+    unit: string;
+    total_value: number;
+  }> }>(`/api/contracts/pending`).catch(() => ({ count: 0, contracts: [] }));
 
 export const triggerInventoryCheck = () =>
   apiFetch<{ message: string; order_ids: string[] }>(
