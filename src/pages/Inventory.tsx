@@ -113,6 +113,21 @@ const Inventory = () => {
   const [manualQty, setManualQty] = useState(100);
   const [placing, setPlacing] = useState(false);
 
+  const [detailItem, setDetailItem] = useState<InventoryItem | null>(null);
+  const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const openDetail = useCallback(async (it: InventoryItem) => {
+    setDetailItem(it);
+    setHistoryLoading(true);
+    try {
+      const res = await getPastOrders(undefined, it.item_id);
+      setHistoryOrders(res.orders || []);
+    } catch {
+      setHistoryOrders([]);
+    } finally { setHistoryLoading(false); }
+  }, []);
+
   const catParam = category === "All" ? undefined : category;
 
   const load = useCallback(async () => {
