@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Package, AlertTriangle, Clock, Bell, Loader2,
-  Zap, Network, Settings, Activity, ShieldCheck,
+  Zap, Network, Settings, Activity, ShieldCheck, FileSignature,
 } from "lucide-react";
 import {
-  getDashboard, getNotifications,
+  getDashboard, getNotifications, getCurrentOrders, approveContract,
+  Order,
 } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
