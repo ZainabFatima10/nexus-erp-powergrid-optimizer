@@ -336,6 +336,21 @@ const OrderDetailModal = ({ order: initialOrder, onClose, onUpdate }: Props) => 
             </div>
           )}
 
+          {/* ── SMART CONTRACT ── */}
+          {!loading && tab === "smartcontract" && order.contract && (
+            <ContractPanel
+              contract={order.contract}
+              orderId={order.id}
+              onUpdated={async () => {
+                try {
+                  const detail = await getOrder(order.id);
+                  setOrder(detail.order);
+                  onUpdate();
+                } catch { /* noop */ }
+              }}
+            />
+          )}
+
           {/* ── CHECK-IN FORM ── */}
           {!loading && tab === "checkin" && (
             <div className="space-y-4">
