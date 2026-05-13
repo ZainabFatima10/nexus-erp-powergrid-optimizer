@@ -8,6 +8,7 @@ import {
   getOrder, signContract, submitDeliveryCheckin,
   ProcurementOrder, DeliveryCheckin, ContractAuditEntry,
 } from "@/services/api";
+import ContractPanel from "@/components/ContractPanel";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
