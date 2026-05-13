@@ -18,7 +18,7 @@ interface Props {
   onUpdate: () => void;
 }
 
-type ModalTab = "overview" | "contract" | "tracking" | "checkin";
+type ModalTab = "overview" | "contract" | "tracking" | "checkin" | "smartcontract";
 
 const STAGE_STEPS = [
   "Pending Verification",
