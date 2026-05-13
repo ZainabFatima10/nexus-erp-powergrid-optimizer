@@ -28,35 +28,48 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 const Dashboard = () => {
+  const { toast } = useToast();
   // Use 'any' here because backend response shape evolves; we normalize below.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [stats, setStats] = useState<any | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [notes, setNotes] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pendingContracts, setPendingContracts] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    Promise.all([
+  const loadAll = useCallback(async () => {
+    const [d, n, cur] = await Promise.all([
       getDashboard().catch((e) => { console.error("dashboard", e); return null; }),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       getNotifications().catch((e) => { console.error("notifications", e); return null as any; }),
-    ])
-      .then(([d, n]) => {
-        setStats(d);
-        if (n) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const anyN = n as any;
-          const list = anyN.notifications ?? anyN.recent_notifications ?? [];
-          setNotes(list.slice(0, 5));
-          setUnreadCount(anyN.unread_count ?? anyN.count ?? 0);
-        }
-        if (!d) setError("Backend returned no dashboard data");
-      })
-      .catch((e) => setError(String(e?.message || e)))
-      .finally(() => setLoading(false));
+      getCurrentOrders().catch((e) => { console.error("current orders", e); return { count: 0, orders: [] as Order[] }; }),
+    ]);
+    setStats(d);
+    if (n) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyN = n as any;
+      const list = anyN.notifications ?? anyN.recent_notifications ?? [];
+      setNotes(list.slice(0, 5));
+      setUnreadCount(anyN.unread_count ?? anyN.count ?? 0);
+    }
+    setPendingContracts((cur.orders || []).filter((o) => o.stage === "Pending Verification"));
+    if (!d) setError("Backend returned no dashboard data");
+    setLoading(false);
   }, []);
+
+  useEffect(() => { loadAll(); }, [loadAll]);
+
+  const handleSign = async (orderId: string) => {
+    try {
+      await approveContract(orderId);
+      toast({ title: "Contract approved and signed to ledger." });
+      loadAll();
+    } catch (e) {
+      toast({ title: "Sign failed", description: String(e), variant: "destructive" });
+    }
+  };
 
   if (loading) {
     return (
