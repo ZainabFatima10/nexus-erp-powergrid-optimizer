@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Loader2, FileSignature } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createManualContract } from "@/services/api";
