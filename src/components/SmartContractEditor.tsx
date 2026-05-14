@@ -56,7 +56,16 @@ const SmartContractEditor = ({ onCreated, prefilledItemName, prefilledQuantity }
           : `Order ${order_code} created.`,
       });
       setVendor(""); setItem(""); setQty(1); setPrice(0); setAdvancePct(30);
-      onCreated?.();
+      onCreated?.({
+        order_code,
+        item_name: item.trim(),
+        vendor_name: vendor.trim(),
+        quantity: qty,
+        total_price: totalValue,
+        advance_pct: advancePct,
+        order_id: res.order_id,
+        contract_hash: res.contract_hash,
+      });
     } catch (e) {
       toast({ title: "Failed to create contract", description: String(e), variant: "destructive" });
     } finally {
