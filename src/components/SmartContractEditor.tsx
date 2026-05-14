@@ -6,7 +6,9 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 
 interface Props {
-  onCreated?: () => void;
+  onCreated?: (created?: { order_code: string; item_name: string; vendor_name: string; quantity: number; total_price: number; advance_pct: number; order_id?: string; contract_hash?: string }) => void;
+  prefilledItemName?: string;
+  prefilledQuantity?: number;
 }
 
 const fmtPKR = (n: number) =>
