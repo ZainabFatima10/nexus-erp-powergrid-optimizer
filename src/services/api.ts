@@ -181,7 +181,61 @@ export const getPastOrders = (category?: string, item_id?: string) => {
 };
 
 export const approveContract = (id: string) =>
-  apiFetch<{ message: string }>(`/api/contracts/${id}/approve`, { method: "POST" });
+  apiFetch<{ message: string; transaction_hash?: string; tx_hash?: string }>(`/api/contracts/${id}/approve`, { method: "POST" });
+
+// ── Module: Procurement & Smart Contracts (manual workflow) ───────────────────
+export interface ProcurementOrderListItem {
+  id: string;
+  order_code: string;
+  item_name: string;
+  quantity: number;
+  total_price: number;
+  contract_status: "Pending" | "Signed" | "Executed" | "Rejected" | string;
+  contract_hash: string | null;
+  vendor_name: string;
+  unit_price?: number;
+  advance_pct?: number;
+  payment_terms?: string;
+  buyer_name?: string;
+}
+
+export const fetchOrders = () =>
+  apiFetch<{ orders: ProcurementOrderListItem[] }>("/api/procurement/orders");
+
+export interface CreateManualContractPayload {
+  item_name: string;
+  quantity: number;
+  vendor_name: string;
+  total_price: number;
+  order_code: string;
+  payment_terms: string;
+}
+
+export const createManualContract = (payload: CreateManualContractPayload) =>
+  apiFetch<{ message: string; order_id?: string; contract_hash?: string }>(
+    "/api/contracts/create-manual",
+    { method: "POST", body: JSON.stringify(payload) }
+  );
+
+export const signContractById = (orderId: string) =>
+  apiFetch<{ message: string; transaction_hash?: string; tx_hash?: string; contract_hash?: string }>(
+    `/api/contracts/${orderId}/approve`,
+    { method: "POST" }
+  );
+
+export const executeContract = (orderId: string, quantity_received: number) =>
+  apiFetch<{ message: string; transaction_hash?: string; execution_hash?: string }>(
+    `/api/procurement/checkin/${orderId}`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        status: "Delivered",
+        quantity_received,
+        condition: "Good",
+        is_final: true,
+      }),
+    }
+  );
 
 export const rejectContract = (id: string) =>
   apiFetch<{ message: string }>(`/api/contracts/${id}/reject`, { method: "POST" });
