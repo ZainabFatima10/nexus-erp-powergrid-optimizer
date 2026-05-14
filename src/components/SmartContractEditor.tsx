@@ -16,14 +16,19 @@ const fmtPKR = (n: number) =>
     isFinite(n) ? n : 0,
   );
 
-const SmartContractEditor = ({ onCreated }: Props) => {
+const SmartContractEditor = ({ onCreated, prefilledItemName, prefilledQuantity }: Props) => {
   const { toast } = useToast();
   const [vendor, setVendor] = useState("");
-  const [item, setItem] = useState("");
-  const [qty, setQty] = useState<number>(1);
+  const [item, setItem] = useState(prefilledItemName || "");
+  const [qty, setQty] = useState<number>(prefilledQuantity && prefilledQuantity > 0 ? prefilledQuantity : 1);
   const [price, setPrice] = useState<number>(0);
   const [advancePct, setAdvancePct] = useState<number>(30);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (prefilledItemName) setItem(prefilledItemName);
+    if (prefilledQuantity && prefilledQuantity > 0) setQty(prefilledQuantity);
+  }, [prefilledItemName, prefilledQuantity]);
 
   const totalValue = useMemo(() => qty * price, [qty, price]);
   const advanceAmount = useMemo(() => (totalValue * advancePct) / 100, [totalValue, advancePct]);
