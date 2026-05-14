@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   RefreshCw, Loader2, Plus, X, Info,
   Package, CheckCircle2, AlertTriangle, XCircle,
@@ -97,6 +98,7 @@ const statusRowClass = (status: string) =>
 
 const Inventory = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [category, setCategory] = useState<CategoryTab>("All");
   const [tab, setTab] = useState<SubTab>("overview");
 
@@ -186,17 +188,14 @@ const Inventory = () => {
     }
   };
 
-  const handleManualReorder = async () => {
+  const handleManualReorder = () => {
     if (!manualItem) return;
-    setPlacing(true);
-    try {
-      await manualReorder(manualItem, manualQty);
-      toast({ title: "Reorder placed — pending admin contract approval." });
-      setShowManualModal(false);
-      await load();
-    } catch (e) {
-      toast({ title: "Failed", description: String(e), variant: "destructive" });
-    } finally { setPlacing(false); }
+    const picked = items.find((i) => i.item_id === manualItem);
+    const itemName = picked?.name || "";
+    setShowManualModal(false);
+    navigate("/procurement", {
+      state: { prefilledItemName: itemName, prefilledQuantity: manualQty },
+    });
   };
 
   const categoryTabs: CategoryTab[] = ["All", "Generation", "Infrastructure", "Operational"];

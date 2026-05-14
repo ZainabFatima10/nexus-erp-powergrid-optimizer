@@ -189,10 +189,21 @@ const Procurement = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  const navState = (location.state as { prefilledItemName?: string; prefilledQuantity?: number } | null) || null;
+
   const load = useCallback(async () => {
     try {
       const res = await fetchOrders();
-      setOrders(res.orders || []);
+      setOrders((prev) => {
+        const fresh = res.orders || [];
+        // keep any optimistic items the backend hasn't returned yet
+        const freshIds = new Set(fresh.map((o) => o.id));
+        const freshCodes = new Set(fresh.map((o) => o.order_code));
+        const optimistic = prev.filter(
+          (o) => o.id?.startsWith("optimistic-") && !freshIds.has(o.id) && !freshCodes.has(o.order_code),
+        );
+        return [...optimistic, ...fresh];
+      });
     } catch (e) {
       toast({ title: "Failed to load orders", description: String(e), variant: "destructive" });
     } finally {
@@ -203,8 +214,36 @@ const Procurement = () => {
 
   useEffect(() => { load(); }, [load]);
 
+  const handleCreated = useCallback((created?: {
+    order_code: string; item_name: string; vendor_name: string;
+    quantity: number; total_price: number; advance_pct: number;
+    order_id?: string; contract_hash?: string;
+  }) => {
+    if (created) {
+      const optimistic: ProcurementOrderListItem = {
+        id: created.order_id || `optimistic-${created.order_code}`,
+        order_code: created.order_code,
+        item_name: created.item_name,
+        quantity: created.quantity,
+        total_price: created.total_price,
+        contract_status: "Pending",
+        contract_hash: created.contract_hash || null,
+        vendor_name: created.vendor_name,
+        advance_pct: created.advance_pct,
+        buyer_name: "NEXUS Procurement",
+      };
+      setOrders((prev) => {
+        const exists = prev.some((o) => o.order_code === optimistic.order_code);
+        return exists ? prev : [optimistic, ...prev];
+      });
+    }
+    load();
+  }, [load]);
+
   const highlightedId = new URLSearchParams(location.search).get("contract") || "";
-  const visible = orders.filter((o) => o.contract_status === "Pending" || o.contract_status === "Signed");
+  const visible = orders.filter(
+    (o) => o.contract_status !== "Executed" && o.contract_status !== "Rejected",
+  );
 
   return (
     <div className="space-y-6 animate-slide-up">
@@ -224,7 +263,11 @@ const Procurement = () => {
         </button>
       </div>
 
-      <SmartContractEditor onCreated={load} />
+      <SmartContractEditor
+        onCreated={handleCreated}
+        prefilledItemName={navState?.prefilledItemName}
+        prefilledQuantity={navState?.prefilledQuantity}
+      />
 
       <div>
         <h2 className="font-heading font-bold text-sm mb-3">Active Contracts ({visible.length})</h2>

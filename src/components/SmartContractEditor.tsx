@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Loader2, FileSignature } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createManualContract } from "@/services/api";
@@ -6,7 +6,9 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 
 interface Props {
-  onCreated?: () => void;
+  onCreated?: (created?: { order_code: string; item_name: string; vendor_name: string; quantity: number; total_price: number; advance_pct: number; order_id?: string; contract_hash?: string }) => void;
+  prefilledItemName?: string;
+  prefilledQuantity?: number;
 }
 
 const fmtPKR = (n: number) =>
@@ -14,14 +16,19 @@ const fmtPKR = (n: number) =>
     isFinite(n) ? n : 0,
   );
 
-const SmartContractEditor = ({ onCreated }: Props) => {
+const SmartContractEditor = ({ onCreated, prefilledItemName, prefilledQuantity }: Props) => {
   const { toast } = useToast();
   const [vendor, setVendor] = useState("");
-  const [item, setItem] = useState("");
-  const [qty, setQty] = useState<number>(1);
+  const [item, setItem] = useState(prefilledItemName || "");
+  const [qty, setQty] = useState<number>(prefilledQuantity && prefilledQuantity > 0 ? prefilledQuantity : 1);
   const [price, setPrice] = useState<number>(0);
   const [advancePct, setAdvancePct] = useState<number>(30);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (prefilledItemName) setItem(prefilledItemName);
+    if (prefilledQuantity && prefilledQuantity > 0) setQty(prefilledQuantity);
+  }, [prefilledItemName, prefilledQuantity]);
 
   const totalValue = useMemo(() => qty * price, [qty, price]);
   const advanceAmount = useMemo(() => (totalValue * advancePct) / 100, [totalValue, advancePct]);
@@ -49,7 +56,16 @@ const SmartContractEditor = ({ onCreated }: Props) => {
           : `Order ${order_code} created.`,
       });
       setVendor(""); setItem(""); setQty(1); setPrice(0); setAdvancePct(30);
-      onCreated?.();
+      onCreated?.({
+        order_code,
+        item_name: item.trim(),
+        vendor_name: vendor.trim(),
+        quantity: qty,
+        total_price: totalValue,
+        advance_pct: advancePct,
+        order_id: res.order_id,
+        contract_hash: res.contract_hash,
+      });
     } catch (e) {
       toast({ title: "Failed to create contract", description: String(e), variant: "destructive" });
     } finally {
