@@ -98,6 +98,7 @@ const statusRowClass = (status: string) =>
 
 const Inventory = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [category, setCategory] = useState<CategoryTab>("All");
   const [tab, setTab] = useState<SubTab>("overview");
 
