@@ -99,6 +99,7 @@ const Notifications = () => {
     try {
       await markNotificationRead(id);
       setItems((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
+      toast({ title: "Successfully Marked as Read" });
     } catch {
       toast({ title: "Failed to mark as read", variant: "destructive" });
     }
